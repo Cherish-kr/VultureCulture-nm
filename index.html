@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>독수리 눈치게임 (Eagle's Stare) - Online</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+        :root {
+            --bg-color: #2c1a12;
+            --board-bg: #4a2e21;
+            --accent: #f0a500;
+            --card-plus: #2ecc71;
+            --card-minus: #e74c3c;
+            --card-player: #f1c40f;
+            --card-back: #34495e;
+            --text: #fdf6e3;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; overflow: hidden; user-select: none;
+        }
+
+        h1, h2, h3 { font-family: 'Black Han Sans', sans-serif; letter-spacing: 2px; font-weight: normal; margin: 0; }
+
+        /* 화면 전환 시스템 */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            background-color: var(--bg-color); z-index: 10;
+        }
+        .screen.active { opacity: 1; pointer-events: auto; z-index: 20; }
+
+        /* UI 컴포넌트 */
+        .title { font-size: 4rem; color: var(--accent); text-shadow: 3px 3px 0 #000; margin-bottom: 40px; text-align: center; line-height: 1.1; }
+        .subtitle { font-size: 1.5rem; color: #aaa; font-family: 'Noto Sans KR'; }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--accent), #d35400); border: 2px solid #fff;
+            color: #fff; padding: 15px 40px; font-size: 1.4rem; font-family: 'Black Han Sans';
+            border-radius: 30px; cursor: pointer; transition: all 0.2s; width: 300px; margin-bottom: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+        }
+        .btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 20px rgba(0,0,0,0.7); filter: brightness(1.1); }
+        .btn-sub { background: #555; border-color: #888; }
+        
+        .panel { background: rgba(0,0,0,0.6); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid #555; }
+        .input-box { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border-radius: 10px; border: none; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; }
+
+        /* 카드 UI */
+        .card {
+            width: 70px; height: 100px; border-radius: 8px; font-family: 'Black Han Sans';
+            display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+            color: #fff; text-shadow: 1px 1px 2px #000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background-color: var(--card-back); border: 3px solid #fff;
+        }
+        .card.plus { background-color: var(--card-plus); }
+        .card.minus { background-color: var(--card-minus); }
+        .card.player { background-color: var(--card-player); color: #333; text-shadow: none; border-color: #333; }
+        .card.hidden { background: repeating-linear-gradient(45deg, #34495e, #34495e 10px, #2c3e50 10px, #2c3e50 20px); border-color: #fff; color: transparent !important; text-shadow: none !important;}
+        
+        .card.selectable { cursor: pointer; }
+        .card.selectable:hover { transform: translateY(-15px) scale(1.1); z-index: 5; }
+        .card.selected { transform: translateY(-20px) scale(1.15); box-shadow: 0 0 20px var(--accent); border-color: var(--accent); z-index: 10; }
+
+        /* 게임 보드 레이아웃 */
+        .game-layout { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 900px; padding: 20px; }
+        
+        .top-area { display: flex; justify-content: space-around; height: 20%; align-items: center; }
+        .opponent { text-align: center; background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 12px; }
+        .opp-name { font-weight: bold; color: var(--accent); font-size: 1.1rem; }
+        .opp-score { font-size: 2rem; font-family: 'Black Han Sans'; }
+        .opp-status { margin-top: 5px; font-size: 0.9rem; color: #aaa; }
+        .opp-status.ready { color: #2ecc71; font-weight: bold; }
+
+        .center-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: var(--board-bg); border-radius: 20px; border: 3px solid #663e2a; margin: 10px 0; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); }
+        .center-deck { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center;}
+        .center-pool { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        .info-msg { position: absolute; bottom: 20px; font-size: 1.5rem; font-family: 'Black Han Sans'; color: var(--accent); text-shadow: 2px 2px 0 #000; transition: opacity 0.3s;}
+
+        .bottom-area { height: 35%; display: flex; flex-direction: column; align-items: center; }
+        .my-info { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; align-items: center; padding: 0 10px;}
+        .my-score { font-size: 2.5rem; font-family: 'Black Han Sans'; color: var(--accent); }
+        .submit-btn { padding: 10px 30px; font-size: 1.2rem; display: none; }
+        
+        .my-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; max-width: 100%; }
+        
+        /* 모션 그래픽 튜토리얼 영역 */
+        .tutorial-stage { position: relative; width: 100%; max-width: 800px; height: 500px; background: #1a1a1a; border-radius: 15px; border: 2px solid var(--accent); overflow: hidden; }
+        .tut-text { position: absolute; top: 30px; left: 0; width: 100%; text-align: center; font-size: 1.8rem; font-family: 'Black Han Sans'; color: #fff; text-shadow: 2px 2px 0 #000; z-index: 10;}
+        .tut-subtext { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; font-size: 1.1rem; color: #ccc; z-index: 10;}
+        .tut-card { position: absolute; width: 80px; height: 115px; border-radius: 10px; border: 3px solid #fff; display: flex; justify-content: center; align-items: center; font-size: 3rem; font-family: 'Black Han Sans'; box-shadow: 0 5px 15px rgba(0,0,0,0.6); transition: all 1s cubic-bezier(0.25, 1, 0.5, 1); transform-style: preserve-3d; color: #fff; text-shadow: 2px 2px 0 #000; }
+        .tut-controls { margin-top: 20px; display: flex; gap: 20px; }
+
+        @media (max-width: 600px) {
+            .card { width: 45px; height: 65px; font-size: 1.5rem; border-width: 2px; }
+            .my-hand { gap: 3px; }
+            .title { font-size: 2.5rem; }
+            .tutorial-stage { height: 400px; }
+            .tut-text { font-size: 1.3rem; }
+            .tut-subtext { font-size: 0.9rem; top: 60px; }
+            .tut-card { width: 50px; height: 75px; font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 메인 메뉴 -->
+    <div id="screen-menu" class="screen active">
+        <h1 class="title">독수리 눈치게임<br><span class="subtitle">Online Multiplayer</span></h1>
+        <button class="btn" onclick="showScreen('screen-host')">방 만들기 (Host)</button>
+        <button class="btn" onclick="showScreen('screen-join')">방 접속하기 (Guest)</button>
+        <button class="btn btn-sub" onclick="startTutorial()">모션 그래픽 튜토리얼</button>
+    </div>
+
+    <!-- 2. 방 만들기 (Host) -->
+    <div id="screen-host" class="screen">
+        <div class="panel">
+            <h2>방 생성 완료!</h2>
+            <p style="margin-top:20px; color:#ccc;">친구에게 아래 5자리 코드를 알려주세요.</p>
+            <div id="room-code-display" style="font-size:4rem; font-family:'Black Han Sans'; color:var(--accent); letter-spacing:5px; margin:20px 0;">로딩중</div>
+            <div style="margin-bottom:30px; font-size:1.1rem;">접속 대기중... <span id="player-count">1</span>/4 명</div>
+            <button class="btn" onclick="startGameAsHost()" id="start-game-btn" style="display:none; width:100%;">게임 시작하기</button>
+            <button class="btn btn-sub" style="width:100%; margin-top:10px;" onclick="location.reload()">메인으로</button>
+        </div>
+    </div>
+
+    <!-- 3. 방 접속 (Guest) -->
+    <div id="screen-join" class="screen">
+        <div class="panel">
+            <h2>방 코드 입력</h2>
+            <input type="text" id="join-code" class="input-box" placeholder="5자리 코드" maxlength="5">
+            <button class="btn" style="width:100%;" onclick="joinRoom()">접속하기</button>
+            <p id="join-status" style="color:var(--accent); margin-top:10px;"></p>
+            <button class="btn btn-sub" style="width:100%; margin-top:10px;" onclick="location.reload()">뒤로가기</button>
+        </div>
+    </div>
+
+    <!-- 4. 게임 화면 -->
+    <div id="screen-game" class="screen">
+        <div class="game-layout">
+            <!-- 상대방 정보 영역 -->
+            <div class="top-area" id="opponents-container"></div>
+            
+            <!-- 중앙 보드 영역 -->
+            <div class="center-area">
+                <div class="center-deck">
+                    <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">남은 카드</div>
+                    <div class="card hidden" id="deck-card">?</div>
+                    <div id="deck-count" style="margin-top:5px; font-weight:bold;">15</div>
+                </div>
+                <div class="center-pool" id="center-pool">
+                    <!-- 현재 라운드 점수 카드들 배치됨 -->
+                </div>
+                <div class="info-msg" id="game-msg">상대방을 기다리는 중...</div>
+            </div>
+
+            <!-- 내 정보 영역 -->
+            <div class="bottom-area">
+                <div class="my-info">
+                    <div>
+                        <span style="color:#aaa;">내 점수</span>
+                        <div class="my-score" id="my-score">0</div>
+                    </div>
+                    <button class="btn submit-btn" id="submit-btn" onclick="submitCard()">카드 내기!</button>
+                </div>
+                <div class="my-hand" id="my-hand">
+                    <!-- 내 카드 1~15 렌더링 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 모션 그래픽 튜토리얼 화면 -->
+    <div id="screen-tutorial" class="screen">
+        <div class="tutorial-stage" id="tut-stage">
+            <div class="tut-text" id="tut-title">독수리 눈치싸움 룰 완벽 가이드</div>
+            <div class="tut-subtext" id="tut-desc">아래 다음 버튼을 눌러 모션 그래픽으로 배워보세요.</div>
+        </div>
+        <div class="tut-controls">
+            <button class="btn btn-sub" style="width:150px;" onclick="showScreen('screen-menu')">종료</button>
+            <button class="btn" style="width:150px;" onclick="nextTutStep()" id="tut-next-btn">시작하기</button>
+        </div>
+    </div>
+
+<script>
+    // ==========================================
+    // UI 스크린 제어
+    // ==========================================
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // ==========================================
+    // 모션 그래픽 튜토리얼 (CSS Transition 기반)
+    // ==========================================
+    let tutStep = 0;
+    const tutStage = document.getElementById('tut-stage');
+    const tutTitle = document.getElementById('tut-title');
+    const tutDesc = document.getElementById('tut-desc');
+    let tutElements = []; // 생성된 DOM 카드들
+
+    function startTutorial() {
+        showScreen('screen-tutorial');
+        tutStep = 0;
+        document.getElementById('tut-next-btn').innerText = "시작하기";
+        tutStage.innerHTML = '<div class="tut-text" id="tut-title">독수리 눈치게임 룰 가이드</div><div class="tut-subtext" id="tut-desc">모두 1~15까지의 카드를 한 벌씩 가집니다.<br>중앙에 공개되는 점수 카드를 걸고 비공개 입찰을 합니다.</div>';
+        tutTitle = document.getElementById('tut-title');
+        tutDesc = document.getElementById('tut-desc');
+    }
+
+    function createTutCard(val, type, startX, startY) {
+        const c = document.createElement('div');
+        c.className = `tut-card ${type}`;
+        c.innerText = val > 0 && type !== 'player' ? `+${val}` : val;
+        c.style.left = `${startX}%`;
+        c.style.top = `${startY}%`;
+        c.style.transform = `translate(-50%, -50%)`;
+        if(type === 'hidden') {
+            c.innerText = ''; c.dataset.val = val; 
+        }
+        tutStage.appendChild(c);
+        return c;
+    }
+
+    function moveTutCard(card, x, y, flipToType = null) {
+        card.style.left = `${x}%`; card.style.top = `${y}%`;
+        if(flipToType) {
+            card.style.transform = `translate(-50%, -50%) rotateY(180deg)`;
+            setTimeout(() => {
+                card.className = `tut-card ${flipToType}`;
+                card.style.transform = `translate(-50%, -50%) rotateY(0deg)`;
+                card.innerText = card.dataset.val;
+            }, 300); // 절반쯤 돌았을 때 변경
+        }
+    }
+
+    function nextTutStep() {
+        document.getElementById('tut-next-btn').innerText = "다음";
+        tutStep++;
+        
+        // 씬 초기화 (기존 애니메이션 요소 삭제)
+        document.querySelectorAll('.tut-card').forEach(c => c.remove());
+
+        if (tutStep === 1) {
+            tutTitle.innerText = "1. 플러스 카드 (높은 숫자 승리)";
+            tutDesc.innerText = "중앙에 플러스 점수가 나오면, [가장 큰 카드]를 낸 사람이 점수를 먹습니다.";
+            const pointCard = createTutCard(8, 'plus', 50, -20);
+            
+            setTimeout(() => moveTutCard(pointCard, 50, 40), 100);
+            
+            const p1 = createTutCard(14, 'hidden', 20, 120);
+            const p2 = createTutCard(10, 'hidden', 80, 120);
+
+            setTimeout(() => { moveTutCard(p1, 35, 60); moveTutCard(p2, 65, 60); }, 1000);
+            setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "왼쪽 플레이어가 14를 내서 10을 이겼습니다!";}, 2500);
+            setTimeout(() => { moveTutCard(pointCard, 35, 60); }, 3500); // 14에게 점수 이동
+            setTimeout(() => { pointCard.style.opacity = 0; p1.style.opacity = 0; p2.style.opacity = 0; }, 5000);
+        } 
+        else if (tutStep === 2) {
+            tutTitle.innerText = "2. 마이너스 독수리 카드 (낮은 숫자 독박)";
+            tutDesc.innerText = "중앙에 마이너스 점수가 나오면, [가장 작은 카드]를 낸 사람이 감점을 먹습니다.";
+            const pointCard = createTutCard(-5, 'minus', 50, -20);
+            
+            setTimeout(() => moveTutCard(pointCard, 50, 40), 100);
+            
+            const p1 = createTutCard(3, 'hidden', 20, 120);
+            const p2 = createTutCard(7, 'hidden', 80, 120);
+
+            setTimeout(() => { moveTutCard(p1, 35, 60); moveTutCard(p2, 65, 60); }, 1000);
+            setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "왼쪽 플레이어가 3으로 더 작기 때문에 -5를 떠안습니다.";}, 2500);
+            setTimeout(() => { moveTutCard(pointCard, 35, 60); }, 3500); 
+        }
+        else if (tutStep === 3) {
+            tutTitle.innerText = "3. 동점(눈치싸움) 규칙 - 폭파!";
+            tutDesc.innerText = "같은 숫자를 낸 사람들은 [무효 처리] 됩니다. 유일한 숫자를 낸 사람에게 기회가 넘어갑니다.";
+            const pointCard = createTutCard(10, 'plus', 50, 40);
+            
+            const p1 = createTutCard(15, 'hidden', 20, 120);
+            const p2 = createTutCard(15, 'hidden', 50, 120);
+            const p3 = createTutCard(8, 'hidden', 80, 120);
+
+            setTimeout(() => { moveTutCard(p1, 20, 70); moveTutCard(p2, 50, 70); moveTutCard(p3, 80, 70); }, 500);
+            setTimeout(() => { moveTutCard(p1, 20, 70, 'player'); moveTutCard(p2, 50, 70, 'player'); moveTutCard(p3, 80, 70, 'player'); tutDesc.innerText="15를 낸 두 명은 무효(폭파)되고, 어부지리로 8을 낸 사람이 승리합니다!"; }, 2000);
+            setTimeout(() => { p1.style.transform = 'translate(-50%,-50%) scale(0)'; p1.style.opacity=0; p2.style.transform = 'translate(-50%,-50%) scale(0)'; p2.style.opacity=0; }, 3500);
+            setTimeout(() => { moveTutCard(pointCard, 80, 70); }, 4500);
+        }
+        else if (tutStep === 4) {
+            tutTitle.innerText = "4. 전원 동점 시 - 이월";
+            tutDesc.innerText = "제출한 카드가 모두 무효처리되면, 중앙의 점수 카드는 다음 라운드로 누적됩니다.";
+            const pointCard1 = createTutCard(7, 'plus', 50, 40);
+            
+            const p1 = createTutCard(12, 'hidden', 35, 120);
+            const p2 = createTutCard(12, 'hidden', 65, 120);
+
+            setTimeout(() => { moveTutCard(p1, 35, 70); moveTutCard(p2, 65, 70); }, 500);
+            setTimeout(() => { moveTutCard(p1, 35, 70, 'player'); moveTutCard(p2, 65, 70, 'player'); tutDesc.innerText="전원 12로 무효! 카드는 모두 날아가고 +7은 누적됩니다."; }, 2000);
+            setTimeout(() => { p1.style.opacity=0; p2.style.opacity=0; }, 3500);
+            
+            const pointCard2 = createTutCard(5, 'plus', 50, -20);
+            setTimeout(() => { pointCard1.style.left="40%"; moveTutCard(pointCard2, 60, 40); tutDesc.innerText="다음 라운드 승자가 누적된 점수(+12)를 모두 가져갑니다!"; }, 4500);
+            setTimeout(() => { document.getElementById('tut-next-btn').innerText = "메인으로"; }, 5000);
+        }
+        else {
+            showScreen('screen-menu');
+        }
+    }
+
+
+    // ==========================================
+    // 네트워크 로직 (PeerJS) 및 게임 상태
+    // ==========================================
+    const APP_PREFIX = 'eagle-';
+    let peer, conn;
+    let isHost = false;
+    let myId = '';
+    
+    // 호스트용 상태
+    let players = []; // { id, name, score, hand: [1..15], currentBid: null }
+    let connections = []; // 연결된 게스트들
+    let pointDeck = [];
+    let tablePool = [];
+    
+    // 클라이언트용 상태
+    let myHand = Array.from({length: 15}, (_, i) => i + 1);
+    let myScore = 0;
+    let selectedCard = null;
+    let isBidded = false;
+
+    // 공통 유틸
+    const generateCode = () => Math.random().toString(36).substring(2, 7).toUpperCase();
+
+    // ---- HOST LOGIC ----
+    function showHostScreen() {
+        const code = generateCode();
+        document.getElementById('room-code-display').innerText = code;
+        
+        peer = new Peer(APP_PREFIX + code);
+        
+        peer.on('open', id => {
+            isHost = true;
+            myId = id;
+            players.push({ id: myId, name: 'Host (나)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null });
+            updateLobbyUI();
+        });
+
+        peer.on('connection', connection => {
+            if (players.length >= 4) { connection.close(); return; }
+            
+            connections.push(connection);
+            const guestId = connection.peer;
+            players.push({ id: guestId, name: `Player ${players.length+1}`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null });
+            updateLobbyUI();
+
+            connection.on('data', data => {
+                if (data.type === 'BID') handlePlayerBid(guestId, data.card);
+            });
+
+            connection.on('close', () => {
+                players = players.filter(p => p.id !== guestId);
+                connections = connections.filter(c => c.peer !== guestId);
+                updateLobbyUI();
+            });
+        });
+    }
+
+    function updateLobbyUI() {
+        document.getElementById('player-count').innerText = players.length;
+        if(players.length >= 2) document.getElementById('start-game-btn').style.display = 'block';
+        else document.getElementById('start-game-btn').style.display = 'none';
+        
+        // 게스트들에게 로비 상태 브로드캐스트
+        broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({id: p.id, name: p.name})) });
+    }
+
+    function startGameAsHost() {
+        // 포인트 카드 초기화 (-5~-1, 1~10)
+        pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10];
+        pointDeck.sort(() => Math.random() - 0.5); // 셔플
+        tablePool = [];
+        
+        broadcast({ type: 'GAME_START' });
+        showScreen('screen-game');
+        initGameUI();
+        startRound();
+    }
+
+    function startRound() {
+        if(pointDeck.length === 0) { endGame(); return; }
+        
+        const drawn = pointDeck.pop();
+        tablePool.push(drawn);
+        
+        players.forEach(p => p.currentBid = null); // 초기화
+        
+        const state = {
+            type: 'ROUND_START',
+            tablePool,
+            deckRemaining: pointDeck.length,
+            players: players.map(p => ({ id: p.id, name: p.name, score: p.score, hasBidded: false }))
+        };
+        broadcast(state);
+        syncClientState(state);
+    }
+
+    function handlePlayerBid(id, cardValue) {
+        const p = players.find(p => p.id === id);
+        if(p && p.currentBid === null && p.hand.includes(cardValue)) {
+            p.currentBid = cardValue;
+            p.hand = p.hand.filter(c => c !== cardValue); // 패에서 제거
+            
+            // 모든 플레이어가 냈는지 확인
+            const allBidded = players.every(pl => pl.currentBid !== null);
+            
+            if (allBidded) {
+                resolveRound();
+            } else {
+                // 누가 냈는지 상태 업데이트
+                const state = { type: 'BID_UPDATE', players: players.map(pl => ({ id: pl.id, hasBidded: pl.currentBid !== null })) };
+                broadcast(state);
+                syncClientState(state);
+            }
+        }
+    }
+
+    function resolveRound() {
+        // 결과 공개 브로드캐스트 (애니메이션 용)
+        const bids = players.map(p => ({ id: p.id, card: p.currentBid }));
+        broadcast({ type: 'ROUND_REVEAL', bids });
+        syncClientState({ type: 'ROUND_REVEAL', bids });
+
+        setTimeout(() => {
+            // 논리 계산
+            const tableSum = tablePool.reduce((a,b)=>a+b, 0);
+            
+            // 중복 입찰 찾기 (폭파)
+            const bidCounts = {};
+            players.forEach(p => { bidCounts[p.currentBid] = (bidCounts[p.currentBid] || 0) + 1; });
+            
+            const validBids = players.filter(p => bidCounts[p.currentBid] === 1);
+            let winner = null;
+
+            if (validBids.length > 0) {
+                if (tableSum >= 0) {
+                    // 플러스 점수: 가장 높은 유일한 입찰자 승리
+                    winner = validBids.reduce((prev, curr) => (prev.currentBid > curr.currentBid) ? prev : curr);
+                } else {
+                    // 마이너스 점수: 가장 낮은 유일한 입찰자 감점
+                    winner = validBids.reduce((prev, curr) => (prev.currentBid < curr.currentBid) ? prev : curr);
+                }
+                
+                winner.score += tableSum;
+                tablePool = []; // 테이블 클리어
+            }
+            
+            // 결과 알림
+            const resultState = {
+                type: 'ROUND_RESULT',
+                winnerId: winner ? winner.id : null,
+                points: tableSum,
+                players: players.map(p => ({id: p.id, score: p.score}))
+            };
+            broadcast(resultState);
+            syncClientState(resultState);
+
+            // 4초 후 다음 라운드
+            setTimeout(() => { startRound(); }, 4000);
+        }, 2000); // Reveal 후 2초 대기
+    }
+
+    function endGame() {
+        const sorted = [...players].sort((a,b) => b.score - a.score);
+        const winner = sorted[0];
+        const msg = { type: 'GAME_OVER', winnerName: winner.name, sortedScores: sorted.map(p => ({name: p.name, score: p.score})) };
+        broadcast(msg);
+        syncClientState(msg);
+    }
+
+    function broadcast(data) {
+        connections.forEach(c => c.send(data));
+    }
+
+
+    // ---- GUEST LOGIC ----
+    function joinRoom() {
+        const code = document.getElementById('join-code').value.trim().toUpperCase();
+        if(code.length !== 5) { alert("5자리 코드를 입력하세요."); return; }
+        
+        document.getElementById('join-status').innerText = "접속 중...";
+        peer = new Peer();
+        
+        peer.on('open', id => {
+            myId = id;
+            conn = peer.connect(APP_PREFIX + code, { reliable: true });
+            
+            conn.on('open', () => {
+                isHost = false;
+                document.getElementById('join-status').innerText = "호스트 대기중...";
+            });
+
+            conn.on('data', data => { syncClientState(data); });
+            
+            conn.on('close', () => { alert("연결이 끊어졌습니다."); location.reload(); });
+        });
+        
+        peer.on('error', () => { document.getElementById('join-status').innerText = "방을 찾을 수 없습니다."; });
+    }
+
+
+    // ---- SHARED CLIENT/UI LOGIC ----
+    let opponentData = [];
+
+    function syncClientState(data) {
+        switch(data.type) {
+            case 'LOBBY_UPDATE':
+                if(!isHost) document.getElementById('join-status').innerText = "참가 완료! 호스트의 시작을 기다립니다.";
+                break;
+            case 'GAME_START':
+                showScreen('screen-game');
+                initGameUI();
+                break;
+            case 'ROUND_START':
+                tablePool = data.tablePool;
+                opponentData = data.players.filter(p => p.id !== myId);
+                const me = data.players.find(p => p.id === myId);
+                myScore = me ? me.score : myScore;
+                
+                isBidded = false;
+                selectedCard = null;
+                document.getElementById('deck-count').innerText = data.deckRemaining;
+                
+                renderTablePool();
+                renderOpponents();
+                renderMyHand();
+                document.getElementById('my-score').innerText = myScore;
+                document.getElementById('game-msg').innerText = "카드를 선택하세요!";
+                break;
+            case 'BID_UPDATE':
+                opponentData.forEach(opp => {
+                    const update = data.players.find(p => p.id === opp.id);
+                    if(update) opp.hasBidded = update.hasBidded;
+                });
+                renderOpponents();
+                break;
+            case 'ROUND_REVEAL':
+                // 상대방들이 낸 카드 앞면 공개 애니메이션
+                data.bids.forEach(b => {
+                    if(b.id !== myId) {
+                        const el = document.getElementById(`opp-card-${b.id}`);
+                        if(el) {
+                            el.classList.remove('hidden');
+                            el.classList.add('player');
+                            el.innerText = b.card;
+                        }
+                    }
+                });
+                document.getElementById('game-msg').innerText = "결과 판정 중...";
+                break;
+            case 'ROUND_RESULT':
+                opponentData.forEach(opp => {
+                    const update = data.players.find(p => p.id === opp.id);
+                    if(update) opp.score = update.score;
+                });
+                const updatedMe = data.players.find(p => p.id === myId);
+                if(updatedMe) { myScore = updatedMe.score; document.getElementById('my-score').innerText = myScore; }
+                
+                if (data.winnerId === null) {
+                    document.getElementById('game-msg').innerText = "전원 동점(폭파)! 카드 이월됨!";
+                } else if (data.winnerId === myId) {
+                    document.getElementById('game-msg').innerText = `당신이 점수(${data.points})를 획득했습니다!`;
+                } else {
+                    const w = opponentData.find(o => o.id === data.winnerId);
+                    document.getElementById('game-msg').innerText = `${w ? w.name : '누군가'}가 점수 획득!`;
+                }
+                renderOpponents();
+                break;
+            case 'GAME_OVER':
+                let finalMsg = `<h2>게임 종료!</h2><br><h3>우승: ${data.winnerName}</h3><br><div style="text-align:left; margin-top:20px;">`;
+                data.sortedScores.forEach((s, idx) => {
+                    finalMsg += `<p>${idx+1}위: ${s.name} (${s.score}점)</p>`;
+                });
+                finalMsg += `</div><br><button class="btn" onclick="location.reload()">메인으로</button>`;
+                document.getElementById('game-msg').innerHTML = "";
+                document.getElementById('center-pool').innerHTML = `<div class="panel" style="background:#222; border-color:var(--accent);">${finalMsg}</div>`;
+                document.getElementById('my-hand').innerHTML = '';
+                break;
+        }
+    }
+
+    // UI 렌더링 함수들
+    function initGameUI() {
+        document.getElementById('deck-card').classList.remove('hidden');
+        document.getElementById('deck-card').classList.add('plus'); // 단순 뒷면용 디자인
+        document.getElementById('deck-card').innerText = "EAGLE";
+        document.getElementById('deck-card').style.fontSize = "1rem";
+    }
+
+    function renderTablePool() {
+        const pool = document.getElementById('center-pool');
+        pool.innerHTML = '';
+        tablePool.forEach(val => {
+            const c = document.createElement('div');
+            c.className = `card ${val > 0 ? 'plus' : 'minus'}`;
+            c.innerText = val > 0 ? `+${val}` : val;
+            pool.appendChild(c);
+        });
+    }
+
+    function renderOpponents() {
+        const container = document.getElementById('opponents-container');
+        container.innerHTML = '';
+        opponentData.forEach(opp => {
+            const wrap = document.createElement('div');
+            wrap.className = 'opponent';
+            
+            // 상태에 따른 카드 표시 (제출 전: 투명, 제출 후: 뒷면)
+            let cardHtml = `<div id="opp-card-${opp.id}" class="card hidden" style="width:40px; height:60px; margin: 10px auto; opacity: ${opp.hasBidded ? 1 : 0.2}">?</div>`;
+            
+            wrap.innerHTML = `
+                <div class="opp-name">${opp.name}</div>
+                <div class="opp-score">${opp.score}</div>
+                ${cardHtml}
+                <div class="opp-status ${opp.hasBidded ? 'ready' : ''}">${opp.hasBidded ? '제출 완료' : '고민중...'}</div>
+            `;
+            container.appendChild(wrap);
+        });
+    }
+
+    function renderMyHand() {
+        const hand = document.getElementById('my-hand');
+        hand.innerHTML = '';
+        const btn = document.getElementById('submit-btn');
+        btn.style.display = 'none';
+
+        myHand.forEach(val => {
+            const c = document.createElement('div');
+            c.className = 'card player selectable';
+            c.innerText = val;
+            c.onclick = () => {
+                if(isBidded) return;
+                document.querySelectorAll('.my-hand .card').forEach(el => el.classList.remove('selected'));
+                c.classList.add('selected');
+                selectedCard = val;
+                btn.style.display = 'block';
+            };
+            hand.appendChild(c);
+        });
+    }
+
+    function submitCard() {
+        if(selectedCard === null || isBidded) return;
+        
+        isBidded = true;
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('game-msg').innerText = "제출 완료! 상대방 대기중...";
+        
+        // 내 손에서 삭제
+        myHand = myHand.filter(v => v !== selectedCard);
+        renderMyHand();
+
+        // 호스트에게 전송 (본인이 호스트면 직접 호출)
+        if (isHost) {
+            handlePlayerBid(myId, selectedCard);
+        } else {
+            conn.send({ type: 'BID', card: selectedCard });
+        }
+    }
+
+    // 메인으로 시작
+    document.getElementById('start-game-btn').addEventListener('click', showHostScreen);
+    
+    // 버튼 연결 덮어쓰기 (기존 인라인 onclick을 구체화)
+    window.showScreen = showScreen;
+    window.startTutorial = startTutorial;
+    window.nextTutStep = nextTutStep;
+</script>
+</body>
+</html>

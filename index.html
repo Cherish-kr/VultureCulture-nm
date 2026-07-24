@@ -54,17 +54,18 @@
         }
         .btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 20px rgba(0,0,0,0.7); filter: brightness(1.1); }
         .btn-sub { background: #555; border-color: #888; }
+        .btn:disabled { background: #444; border-color: #666; color: #888; cursor: not-allowed; box-shadow: none; transform: none; filter: none; }
         
-        .panel { background: rgba(0,0,0,0.6); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid #555; }
+        .panel { background: rgba(0,0,0,0.6); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid #555; width: 90%; max-width: 500px; }
         .input-box { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border-radius: 10px; border: none; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; }
 
         /* 카드 UI */
         .card {
-            width: 70px; height: 100px; border-radius: 8px; font-family: 'Black Han Sans';
-            display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+            width: 60px; height: 90px; border-radius: 8px; font-family: 'Black Han Sans';
+            display: flex; align-items: center; justify-content: center; font-size: 2rem;
             color: #fff; text-shadow: 1px 1px 2px #000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background-color: var(--card-back); border: 3px solid #fff;
+            background-color: var(--card-back); border: 3px solid #fff; flex-shrink: 0;
         }
         .card.plus { background-color: var(--card-plus); }
         .card.minus { background-color: var(--card-minus); }
@@ -76,31 +77,34 @@
         .card.selected { transform: translateY(-20px) scale(1.15); box-shadow: 0 0 20px var(--accent); border-color: var(--accent); z-index: 10; }
 
         /* 게임 보드 레이아웃 */
-        .game-layout { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 900px; padding: 20px; }
+        .game-layout { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 900px; padding: 10px; }
         
-        .top-area { display: flex; justify-content: space-around; height: 20%; align-items: center; }
-        .opponent { text-align: center; background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 12px; }
-        .opp-name { font-weight: bold; color: var(--accent); font-size: 1.1rem; }
-        .opp-score { font-size: 2rem; font-family: 'Black Han Sans'; }
-        .opp-status { margin-top: 5px; font-size: 0.9rem; color: #aaa; }
+        /* 6명까지 지원하는 다인원 레이아웃 */
+        .top-area { display: flex; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 8px; min-height: 25%; max-height: 30%; overflow-y: auto; padding: 10px 0; }
+        .opponent { text-align: center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 12px; min-width: 90px; }
+        .opp-name { font-weight: bold; color: var(--accent); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+        .opp-score { font-size: 1.6rem; font-family: 'Black Han Sans'; margin: 2px 0; }
+        .opp-status { margin-top: 5px; font-size: 0.8rem; color: #aaa; }
         .opp-status.ready { color: #2ecc71; font-weight: bold; }
 
-        .center-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: var(--board-bg); border-radius: 20px; border: 3px solid #663e2a; margin: 10px 0; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); }
-        .center-deck { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center;}
-        .center-pool { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
-        .info-msg { position: absolute; bottom: 20px; font-size: 1.5rem; font-family: 'Black Han Sans'; color: var(--accent); text-shadow: 2px 2px 0 #000; transition: opacity 0.3s;}
+        .center-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: var(--board-bg); border-radius: 20px; border: 3px solid #663e2a; margin: 5px 0; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); min-height: 200px; }
+        .center-deck { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center;}
+        .center-pool { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; padding-left: 60px; }
+        .info-msg { position: absolute; bottom: 15px; font-size: 1.3rem; font-family: 'Black Han Sans'; color: var(--accent); text-shadow: 2px 2px 0 #000; transition: opacity 0.3s; text-align: center; width: 100%; padding: 0 10px;}
 
-        .bottom-area { height: 35%; display: flex; flex-direction: column; align-items: center; }
+        .bottom-area { height: 35%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 15px; }
         .my-info { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; align-items: center; padding: 0 10px;}
-        .my-score { font-size: 2.5rem; font-family: 'Black Han Sans'; color: var(--accent); }
-        .submit-btn { padding: 10px 30px; font-size: 1.2rem; display: none; }
+        .my-score-wrap { display: flex; align-items: center; gap: 15px; }
+        .my-score { font-size: 2.5rem; font-family: 'Black Han Sans'; color: var(--accent); line-height: 1;}
+        .submit-btn { padding: 10px 30px; font-size: 1.2rem; display: none; margin: 0; width: auto;}
         
-        .my-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; max-width: 100%; }
+        .my-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 100%; }
         
         /* 모션 그래픽 튜토리얼 영역 */
         .tutorial-stage { position: relative; width: 100%; max-width: 800px; height: 500px; background: #1a1a1a; border-radius: 15px; border: 2px solid var(--accent); overflow: hidden; }
         .tut-text { position: absolute; top: 30px; left: 0; width: 100%; text-align: center; font-size: 1.8rem; font-family: 'Black Han Sans'; color: #fff; text-shadow: 2px 2px 0 #000; z-index: 10;}
         .tut-subtext { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; font-size: 1.1rem; color: #ccc; z-index: 10;}
+        #tut-card-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 5; pointer-events: none; }
         .tut-card { position: absolute; width: 80px; height: 115px; border-radius: 10px; border: 3px solid #fff; display: flex; justify-content: center; align-items: center; font-size: 3rem; font-family: 'Black Han Sans'; box-shadow: 0 5px 15px rgba(0,0,0,0.6); transition: all 1s cubic-bezier(0.25, 1, 0.5, 1); transform-style: preserve-3d; color: #fff; text-shadow: 2px 2px 0 #000; }
         .tut-controls { margin-top: 20px; display: flex; gap: 20px; }
 
@@ -112,6 +116,10 @@
             .tut-text { font-size: 1.3rem; }
             .tut-subtext { font-size: 0.9rem; top: 60px; }
             .tut-card { width: 50px; height: 75px; font-size: 1.8rem; }
+            .top-area { gap: 5px; }
+            .opponent { padding: 5px 8px; min-width: 70px; }
+            .opp-name { max-width: 60px; font-size: 0.8rem; }
+            .opp-score { font-size: 1.3rem; }
         }
     </style>
 </head>
@@ -119,7 +127,7 @@
 
     <!-- 1. 메인 메뉴 -->
     <div id="screen-menu" class="screen active">
-        <h1 class="title">독수리 눈치게임<br><span class="subtitle">Online Multiplayer</span></h1>
+        <h1 class="title">독수리 눈치게임<br><span class="subtitle">Online Multiplayer (3~6인용)</span></h1>
         <button class="btn" onclick="showScreen('screen-host')">방 만들기 (Host)</button>
         <button class="btn" onclick="showScreen('screen-join')">방 접속하기 (Guest)</button>
         <button class="btn btn-sub" onclick="startTutorial()">모션 그래픽 튜토리얼</button>
@@ -129,10 +137,10 @@
     <div id="screen-host" class="screen">
         <div class="panel">
             <h2>방 생성 완료!</h2>
-            <p style="margin-top:20px; color:#ccc;">친구에게 아래 5자리 코드를 알려주세요.</p>
+            <p style="margin-top:20px; color:#ccc;">최소 3명 ~ 최대 6명이 모여야 시작할 수 있습니다.<br>친구에게 아래 5자리 코드를 알려주세요.</p>
             <div id="room-code-display" style="font-size:4rem; font-family:'Black Han Sans'; color:var(--accent); letter-spacing:5px; margin:20px 0;">로딩중</div>
-            <div style="margin-bottom:30px; font-size:1.1rem;">접속 대기중... <span id="player-count">1</span>/4 명</div>
-            <button class="btn" onclick="startGameAsHost()" id="start-game-btn" style="display:none; width:100%;">게임 시작하기</button>
+            <div style="margin-bottom:30px; font-size:1.1rem;">접속 대기중... <span id="player-count" style="color:var(--accent); font-weight:bold; font-size:1.5rem;">1</span> / 6 명</div>
+            <button class="btn" onclick="startGameAsHost()" id="start-game-btn" style="width:100%;" disabled>인원 부족 (시작 불가)</button>
             <button class="btn btn-sub" style="width:100%; margin-top:10px;" onclick="location.reload()">메인으로</button>
         </div>
     </div>
@@ -151,7 +159,7 @@
     <!-- 4. 게임 화면 -->
     <div id="screen-game" class="screen">
         <div class="game-layout">
-            <!-- 상대방 정보 영역 -->
+            <!-- 상대방 정보 영역 (최대 5명) -->
             <div class="top-area" id="opponents-container"></div>
             
             <!-- 중앙 보드 영역 -->
@@ -170,8 +178,8 @@
             <!-- 내 정보 영역 -->
             <div class="bottom-area">
                 <div class="my-info">
-                    <div>
-                        <span style="color:#aaa;">내 점수</span>
+                    <div class="my-score-wrap">
+                        <span style="color:#aaa;">내 점수:</span>
                         <div class="my-score" id="my-score">0</div>
                     </div>
                     <button class="btn submit-btn" id="submit-btn" onclick="submitCard()">카드 내기!</button>
@@ -186,8 +194,9 @@
     <!-- 5. 모션 그래픽 튜토리얼 화면 -->
     <div id="screen-tutorial" class="screen">
         <div class="tutorial-stage" id="tut-stage">
-            <div class="tut-text" id="tut-title">독수리 눈치싸움 룰 완벽 가이드</div>
-            <div class="tut-subtext" id="tut-desc">아래 다음 버튼을 눌러 모션 그래픽으로 배워보세요.</div>
+            <div class="tut-text" id="tut-title">독수리 눈치게임 룰 가이드</div>
+            <div class="tut-subtext" id="tut-desc">모두 1~15까지의 카드를 한 벌씩 가집니다.<br>중앙에 공개되는 점수 카드를 걸고 비공개 입찰을 합니다.</div>
+            <div id="tut-card-layer"></div>
         </div>
         <div class="tut-controls">
             <button class="btn btn-sub" style="width:150px;" onclick="showScreen('screen-menu')">종료</button>
@@ -208,18 +217,19 @@
     // 모션 그래픽 튜토리얼 (CSS Transition 기반)
     // ==========================================
     let tutStep = 0;
-    const tutStage = document.getElementById('tut-stage');
     const tutTitle = document.getElementById('tut-title');
     const tutDesc = document.getElementById('tut-desc');
-    let tutElements = []; // 생성된 DOM 카드들
+    const tutCardLayer = document.getElementById('tut-card-layer');
 
     function startTutorial() {
         showScreen('screen-tutorial');
         tutStep = 0;
         document.getElementById('tut-next-btn').innerText = "시작하기";
-        tutStage.innerHTML = '<div class="tut-text" id="tut-title">독수리 눈치게임 룰 가이드</div><div class="tut-subtext" id="tut-desc">모두 1~15까지의 카드를 한 벌씩 가집니다.<br>중앙에 공개되는 점수 카드를 걸고 비공개 입찰을 합니다.</div>';
-        tutTitle = document.getElementById('tut-title');
-        tutDesc = document.getElementById('tut-desc');
+        
+        // 텍스트는 덮어쓰지 않고 내용만 변경
+        tutTitle.innerText = "독수리 눈치게임 룰 가이드";
+        tutDesc.innerHTML = "모두 1~15까지의 카드를 한 벌씩 가집니다.<br>중앙에 공개되는 점수 카드를 걸고 비공개 입찰을 합니다.";
+        tutCardLayer.innerHTML = ''; // 카드 찌꺼기만 삭제
     }
 
     function createTutCard(val, type, startX, startY) {
@@ -232,7 +242,7 @@
         if(type === 'hidden') {
             c.innerText = ''; c.dataset.val = val; 
         }
-        tutStage.appendChild(c);
+        tutCardLayer.appendChild(c);
         return c;
     }
 
@@ -244,7 +254,7 @@
                 card.className = `tut-card ${flipToType}`;
                 card.style.transform = `translate(-50%, -50%) rotateY(0deg)`;
                 card.innerText = card.dataset.val;
-            }, 300); // 절반쯤 돌았을 때 변경
+            }, 300);
         }
     }
 
@@ -252,8 +262,8 @@
         document.getElementById('tut-next-btn').innerText = "다음";
         tutStep++;
         
-        // 씬 초기화 (기존 애니메이션 요소 삭제)
-        document.querySelectorAll('.tut-card').forEach(c => c.remove());
+        // 씬 이동 시 기존 카드 삭제
+        tutCardLayer.innerHTML = '';
 
         if (tutStep === 1) {
             tutTitle.innerText = "1. 플러스 카드 (높은 숫자 승리)";
@@ -267,7 +277,7 @@
 
             setTimeout(() => { moveTutCard(p1, 35, 60); moveTutCard(p2, 65, 60); }, 1000);
             setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "왼쪽 플레이어가 14를 내서 10을 이겼습니다!";}, 2500);
-            setTimeout(() => { moveTutCard(pointCard, 35, 60); }, 3500); // 14에게 점수 이동
+            setTimeout(() => { moveTutCard(pointCard, 35, 60); }, 3500); 
             setTimeout(() => { pointCard.style.opacity = 0; p1.style.opacity = 0; p2.style.opacity = 0; }, 5000);
         } 
         else if (tutStep === 2) {
@@ -281,7 +291,7 @@
             const p2 = createTutCard(7, 'hidden', 80, 120);
 
             setTimeout(() => { moveTutCard(p1, 35, 60); moveTutCard(p2, 65, 60); }, 1000);
-            setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "왼쪽 플레이어가 3으로 더 작기 때문에 -5를 떠안습니다.";}, 2500);
+            setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "마이너스 점수는 피해야 합니다! 더 작은 3을 낸 플레이어가 독박을 씁니다.";}, 2500);
             setTimeout(() => { moveTutCard(pointCard, 35, 60); }, 3500); 
         }
         else if (tutStep === 3) {
@@ -294,7 +304,7 @@
             const p3 = createTutCard(8, 'hidden', 80, 120);
 
             setTimeout(() => { moveTutCard(p1, 20, 70); moveTutCard(p2, 50, 70); moveTutCard(p3, 80, 70); }, 500);
-            setTimeout(() => { moveTutCard(p1, 20, 70, 'player'); moveTutCard(p2, 50, 70, 'player'); moveTutCard(p3, 80, 70, 'player'); tutDesc.innerText="15를 낸 두 명은 무효(폭파)되고, 어부지리로 8을 낸 사람이 승리합니다!"; }, 2000);
+            setTimeout(() => { moveTutCard(p1, 20, 70, 'player'); moveTutCard(p2, 50, 70, 'player'); moveTutCard(p3, 80, 70, 'player'); tutDesc.innerText="15를 낸 두 명은 무효(폭파)되고, 어부지리로 8을 낸 사람이 10점을 승리합니다!"; }, 2000);
             setTimeout(() => { p1.style.transform = 'translate(-50%,-50%) scale(0)'; p1.style.opacity=0; p2.style.transform = 'translate(-50%,-50%) scale(0)'; p2.style.opacity=0; }, 3500);
             setTimeout(() => { moveTutCard(pointCard, 80, 70); }, 4500);
         }
@@ -311,7 +321,7 @@
             setTimeout(() => { p1.style.opacity=0; p2.style.opacity=0; }, 3500);
             
             const pointCard2 = createTutCard(5, 'plus', 50, -20);
-            setTimeout(() => { pointCard1.style.left="40%"; moveTutCard(pointCard2, 60, 40); tutDesc.innerText="다음 라운드 승자가 누적된 점수(+12)를 모두 가져갑니다!"; }, 4500);
+            setTimeout(() => { pointCard1.style.left="40%"; moveTutCard(pointCard2, 60, 40); tutDesc.innerText="다음 라운드 승자가 누적된 점수(+12)를 모두 독식합니다!"; }, 4500);
             setTimeout(() => { document.getElementById('tut-next-btn').innerText = "메인으로"; }, 5000);
         }
         else {
@@ -329,8 +339,8 @@
     let myId = '';
     
     // 호스트용 상태
-    let players = []; // { id, name, score, hand: [1..15], currentBid: null }
-    let connections = []; // 연결된 게스트들
+    let players = []; 
+    let connections = []; 
     let pointDeck = [];
     let tablePool = [];
     
@@ -358,7 +368,8 @@
         });
 
         peer.on('connection', connection => {
-            if (players.length >= 4) { connection.close(); return; }
+            // 최대 6명 제한
+            if (players.length >= 6) { connection.close(); return; }
             
             connections.push(connection);
             const guestId = connection.peer;
@@ -379,17 +390,27 @@
 
     function updateLobbyUI() {
         document.getElementById('player-count').innerText = players.length;
-        if(players.length >= 2) document.getElementById('start-game-btn').style.display = 'block';
-        else document.getElementById('start-game-btn').style.display = 'none';
+        
+        const startBtn = document.getElementById('start-game-btn');
+        // 최소 3명 이상일 때 활성화
+        if(players.length >= 3 && players.length <= 6) {
+            startBtn.disabled = false;
+            startBtn.innerText = "게임 시작하기";
+        } else {
+            startBtn.disabled = true;
+            startBtn.innerText = "인원 부족 (시작 불가)";
+        }
         
         // 게스트들에게 로비 상태 브로드캐스트
         broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({id: p.id, name: p.name})) });
     }
 
     function startGameAsHost() {
+        if(players.length < 3) return; // 안전 장치
+
         // 포인트 카드 초기화 (-5~-1, 1~10)
         pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10];
-        pointDeck.sort(() => Math.random() - 0.5); // 셔플
+        pointDeck.sort(() => Math.random() - 0.5); 
         tablePool = [];
         
         broadcast({ type: 'GAME_START' });
@@ -404,7 +425,7 @@
         const drawn = pointDeck.pop();
         tablePool.push(drawn);
         
-        players.forEach(p => p.currentBid = null); // 초기화
+        players.forEach(p => p.currentBid = null); 
         
         const state = {
             type: 'ROUND_START',
@@ -420,15 +441,13 @@
         const p = players.find(p => p.id === id);
         if(p && p.currentBid === null && p.hand.includes(cardValue)) {
             p.currentBid = cardValue;
-            p.hand = p.hand.filter(c => c !== cardValue); // 패에서 제거
+            p.hand = p.hand.filter(c => c !== cardValue); 
             
-            // 모든 플레이어가 냈는지 확인
             const allBidded = players.every(pl => pl.currentBid !== null);
             
             if (allBidded) {
                 resolveRound();
             } else {
-                // 누가 냈는지 상태 업데이트
                 const state = { type: 'BID_UPDATE', players: players.map(pl => ({ id: pl.id, hasBidded: pl.currentBid !== null })) };
                 broadcast(state);
                 syncClientState(state);
@@ -437,16 +456,13 @@
     }
 
     function resolveRound() {
-        // 결과 공개 브로드캐스트 (애니메이션 용)
         const bids = players.map(p => ({ id: p.id, card: p.currentBid }));
         broadcast({ type: 'ROUND_REVEAL', bids });
         syncClientState({ type: 'ROUND_REVEAL', bids });
 
         setTimeout(() => {
-            // 논리 계산
             const tableSum = tablePool.reduce((a,b)=>a+b, 0);
             
-            // 중복 입찰 찾기 (폭파)
             const bidCounts = {};
             players.forEach(p => { bidCounts[p.currentBid] = (bidCounts[p.currentBid] || 0) + 1; });
             
@@ -455,18 +471,15 @@
 
             if (validBids.length > 0) {
                 if (tableSum >= 0) {
-                    // 플러스 점수: 가장 높은 유일한 입찰자 승리
                     winner = validBids.reduce((prev, curr) => (prev.currentBid > curr.currentBid) ? prev : curr);
                 } else {
-                    // 마이너스 점수: 가장 낮은 유일한 입찰자 감점
                     winner = validBids.reduce((prev, curr) => (prev.currentBid < curr.currentBid) ? prev : curr);
                 }
                 
                 winner.score += tableSum;
-                tablePool = []; // 테이블 클리어
+                tablePool = []; 
             }
             
-            // 결과 알림
             const resultState = {
                 type: 'ROUND_RESULT',
                 winnerId: winner ? winner.id : null,
@@ -476,9 +489,8 @@
             broadcast(resultState);
             syncClientState(resultState);
 
-            // 4초 후 다음 라운드
             setTimeout(() => { startRound(); }, 4000);
-        }, 2000); // Reveal 후 2초 대기
+        }, 2000); 
     }
 
     function endGame() {
@@ -516,7 +528,7 @@
             conn.on('close', () => { alert("연결이 끊어졌습니다."); location.reload(); });
         });
         
-        peer.on('error', () => { document.getElementById('join-status').innerText = "방을 찾을 수 없습니다."; });
+        peer.on('error', () => { document.getElementById('join-status').innerText = "방을 찾을 수 없습니다 (혹은 인원이 가득 찼습니다)."; });
     }
 
 
@@ -556,7 +568,6 @@
                 renderOpponents();
                 break;
             case 'ROUND_REVEAL':
-                // 상대방들이 낸 카드 앞면 공개 애니메이션
                 data.bids.forEach(b => {
                     if(b.id !== myId) {
                         const el = document.getElementById(`opp-card-${b.id}`);
@@ -588,13 +599,13 @@
                 renderOpponents();
                 break;
             case 'GAME_OVER':
-                let finalMsg = `<h2>게임 종료!</h2><br><h3>우승: ${data.winnerName}</h3><br><div style="text-align:left; margin-top:20px;">`;
+                let finalMsg = `<h2>게임 종료!</h2><br><h3 style="color:var(--accent);">우승: ${data.winnerName}</h3><br><div style="text-align:left; margin-top:20px;">`;
                 data.sortedScores.forEach((s, idx) => {
-                    finalMsg += `<p>${idx+1}위: ${s.name} (${s.score}점)</p>`;
+                    finalMsg += `<p style="margin:5px 0; font-size:1.1rem;">${idx+1}위: ${s.name} <span style="color:var(--accent);">(${s.score}점)</span></p>`;
                 });
-                finalMsg += `</div><br><button class="btn" onclick="location.reload()">메인으로</button>`;
+                finalMsg += `</div><br><button class="btn" style="margin-top:20px;" onclick="location.reload()">메인으로</button>`;
                 document.getElementById('game-msg').innerHTML = "";
-                document.getElementById('center-pool').innerHTML = `<div class="panel" style="background:#222; border-color:var(--accent);">${finalMsg}</div>`;
+                document.getElementById('center-pool').innerHTML = `<div class="panel" style="background:#222; border-color:var(--accent); width:auto;">${finalMsg}</div>`;
                 document.getElementById('my-hand').innerHTML = '';
                 break;
         }
@@ -603,7 +614,7 @@
     // UI 렌더링 함수들
     function initGameUI() {
         document.getElementById('deck-card').classList.remove('hidden');
-        document.getElementById('deck-card').classList.add('plus'); // 단순 뒷면용 디자인
+        document.getElementById('deck-card').classList.add('plus'); 
         document.getElementById('deck-card').innerText = "EAGLE";
         document.getElementById('deck-card').style.fontSize = "1rem";
     }
@@ -626,11 +637,10 @@
             const wrap = document.createElement('div');
             wrap.className = 'opponent';
             
-            // 상태에 따른 카드 표시 (제출 전: 투명, 제출 후: 뒷면)
-            let cardHtml = `<div id="opp-card-${opp.id}" class="card hidden" style="width:40px; height:60px; margin: 10px auto; opacity: ${opp.hasBidded ? 1 : 0.2}">?</div>`;
+            let cardHtml = `<div id="opp-card-${opp.id}" class="card hidden" style="width:35px; height:50px; font-size:1.2rem; margin: 8px auto; opacity: ${opp.hasBidded ? 1 : 0.2}">?</div>`;
             
             wrap.innerHTML = `
-                <div class="opp-name">${opp.name}</div>
+                <div class="opp-name" title="${opp.name}">${opp.name}</div>
                 <div class="opp-score">${opp.score}</div>
                 ${cardHtml}
                 <div class="opp-status ${opp.hasBidded ? 'ready' : ''}">${opp.hasBidded ? '제출 완료' : '고민중...'}</div>
@@ -667,11 +677,9 @@
         document.getElementById('submit-btn').style.display = 'none';
         document.getElementById('game-msg').innerText = "제출 완료! 상대방 대기중...";
         
-        // 내 손에서 삭제
         myHand = myHand.filter(v => v !== selectedCard);
         renderMyHand();
 
-        // 호스트에게 전송 (본인이 호스트면 직접 호출)
         if (isHost) {
             handlePlayerBid(myId, selectedCard);
         } else {
@@ -679,10 +687,7 @@
         }
     }
 
-    // 메인으로 시작
-    document.getElementById('start-game-btn').addEventListener('click', showHostScreen);
-    
-    // 버튼 연결 덮어쓰기 (기존 인라인 onclick을 구체화)
+    // 버튼 연결 덮어쓰기
     window.showScreen = showScreen;
     window.startTutorial = startTutorial;
     window.nextTutStep = nextTutStep;

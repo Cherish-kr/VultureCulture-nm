@@ -123,7 +123,7 @@
     <div id="screen-menu" class="screen active">
         <h1 class="title">독수리 눈치게임<br><span class="subtitle">AI & Online Multiplayer</span></h1>
         <button class="btn" style="border-color:#2ecc71; color:#fff;" onclick="showScreen('screen-ai-menu')">싱글 플레이 (AI 대전)</button>
-        <button class="btn btn-sub" onclick="showScreen('screen-host')">온라인: 방 만들기 (Host)</button>
+        <button class="btn btn-sub" onclick="startHostRoom()">온라인: 방 만들기 (Host)</button>
         <button class="btn btn-sub" onclick="showScreen('screen-join')">온라인: 방 접속하기 (Guest)</button>
         <button class="btn" style="background:transparent; border-color:#aaa;" onclick="startTutorial()">모션 그래픽 튜토리얼</button>
     </div>
@@ -402,8 +402,9 @@
         startRound();
     }
 
-    // ---- HOST LOGIC ----
-    function showHostScreen() {
+    // ---- HOST LOGIC (ONLINE) ----
+    function startHostRoom() {
+        showScreen('screen-host');
         gameMode = 'ONLINE';
         const code = generateCode();
         document.getElementById('room-code-display').innerText = code;

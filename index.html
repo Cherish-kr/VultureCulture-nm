@@ -75,6 +75,10 @@
         .game-layout { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 900px; padding: 10px; }
         
         .top-area { display: flex; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 8px; min-height: 25%; max-height: 30%; overflow-y: auto; padding: 10px 0; }
+        
+        /* 말풍선과 상대를 감싸는 래퍼 */
+        .opponent-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; }
+        
         .opponent { text-align: center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 12px; min-width: 90px; }
         .opp-name { font-weight: bold; color: var(--accent); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
         .opp-score { font-size: 1.6rem; font-family: 'Black Han Sans'; margin: 2px 0; }
@@ -86,34 +90,45 @@
         .center-pool { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; padding-left: 60px; }
         .info-msg { position: absolute; bottom: 15px; font-size: 1.3rem; font-family: 'Black Han Sans'; color: var(--accent); text-shadow: 2px 2px 0 #000; transition: opacity 0.3s; text-align: center; width: 100%; padding: 0 10px;}
 
-        .bottom-area { height: 35%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 15px; }
-        .my-info { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; align-items: center; padding: 0 10px;}
+        .bottom-area { height: 35%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 15px; position: relative; }
+        
+        .my-info { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; align-items: center; padding: 0 10px; position: relative;}
         .my-score-wrap { display: flex; align-items: center; gap: 15px; }
         .my-score { font-size: 2.5rem; font-family: 'Black Han Sans'; color: var(--accent); line-height: 1;}
         .submit-btn { padding: 10px 30px; font-size: 1.2rem; display: none; margin: 0; width: auto;}
         
         .my-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 100%; }
         
-        /* 모션 그래픽 튜토리얼 영역 */
-        .tutorial-stage { position: relative; width: 100%; max-width: 800px; height: 500px; background: #1a1a1a; border-radius: 15px; border: 2px solid var(--accent); overflow: hidden; }
-        .tut-text { position: absolute; top: 30px; left: 0; width: 100%; text-align: center; font-size: 1.8rem; font-family: 'Black Han Sans'; color: #fff; text-shadow: 2px 2px 0 #000; z-index: 10;}
-        .tut-subtext { position: absolute; top: 80px; left: 0; width: 100%; text-align: center; font-size: 1.1rem; color: #ccc; z-index: 10;}
-        #tut-card-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 5; pointer-events: none; }
-        .tut-card { position: absolute; width: 80px; height: 115px; border-radius: 10px; border: 3px solid #fff; display: flex; justify-content: center; align-items: center; font-size: 3rem; font-family: 'Black Han Sans'; box-shadow: 0 5px 15px rgba(0,0,0,0.6); transition: all 1s cubic-bezier(0.25, 1, 0.5, 1); transform-style: preserve-3d; color: #fff; text-shadow: 2px 2px 0 #000; }
-        .tut-controls { margin-top: 20px; display: flex; gap: 20px; }
+        /* 말풍선 CSS */
+        .chat-bubble {
+            position: absolute; top: -45px; left: 50%; transform: translateX(-50%) scale(0.5);
+            background: #fff; color: #000; padding: 6px 12px; border-radius: 15px; font-size: 0.9rem;
+            font-weight: bold; white-space: nowrap; pointer-events: none; opacity: 0; z-index: 50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .chat-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: #fff transparent transparent transparent;
+        }
+        .chat-bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+        /* 플레이어 티배깅 매크로 버튼 영역 */
+        .chat-controls { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
+        .chat-macro {
+            background: rgba(255,255,255,0.1); border: 1px solid #aaa; color: #fff;
+            padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+        }
+        .chat-macro:hover { background: var(--accent); border-color: #fff; color: #000; font-weight: bold; }
 
         @media (max-width: 600px) {
             .card { width: 45px; height: 65px; font-size: 1.5rem; border-width: 2px; }
             .my-hand { gap: 3px; }
             .title { font-size: 2.5rem; }
-            .tutorial-stage { height: 400px; }
-            .tut-text { font-size: 1.3rem; }
-            .tut-subtext { font-size: 0.9rem; top: 60px; }
-            .tut-card { width: 50px; height: 75px; font-size: 1.8rem; }
             .top-area { gap: 5px; }
             .opponent { padding: 5px 8px; min-width: 70px; }
             .opp-name { max-width: 60px; font-size: 0.8rem; }
             .opp-score { font-size: 1.3rem; }
+            .chat-bubble { font-size: 0.75rem; padding: 4px 8px; top: -35px; }
         }
     </style>
 </head>
@@ -122,22 +137,12 @@
     <!-- 1. 메인 메뉴 -->
     <div id="screen-menu" class="screen active">
         <h1 class="title">독수리 눈치게임<br><span class="subtitle">AI & Online Multiplayer</span></h1>
-        <button class="btn" style="border-color:#2ecc71; color:#fff;" onclick="showScreen('screen-ai-menu')">싱글 플레이 (AI 대전)</button>
+        <button class="btn" style="border-color:#2ecc71; color:#fff;" onclick="startAIGame('NORMAL')">싱글 플레이 (AI 대전 시작)</button>
         <button class="btn btn-sub" onclick="startHostRoom()">온라인: 방 만들기 (Host)</button>
         <button class="btn btn-sub" onclick="showScreen('screen-join')">온라인: 방 접속하기 (Guest)</button>
-        <button class="btn" style="background:transparent; border-color:#aaa;" onclick="startTutorial()">모션 그래픽 튜토리얼</button>
     </div>
 
-    <!-- 2. AI 난이도 선택 화면 -->
-    <div id="screen-ai-menu" class="screen">
-        <h1 class="title" style="font-size: 2.5rem;">AI 난이도 선택<br><span class="subtitle" style="font-size:1rem;">(총 4인 플레이)</span></h1>
-        <button class="btn" style="border-color:#2ecc71; color:#2ecc71; background:#111;" onclick="startAIGame('EASY')">EASY (초보자)</button>
-        <button class="btn" style="border-color:#f1c40f; color:#f1c40f; background:#111;" onclick="startAIGame('NORMAL')">NORMAL (숙련자)</button>
-        <button class="btn" style="border-color:#e74c3c; color:#e74c3c; background:#111;" onclick="startAIGame('HARD')">HARD (마스터)</button>
-        <button class="btn" style="background:transparent; border-color:#555; margin-top: 20px;" onclick="showScreen('screen-menu')">뒤로가기</button>
-    </div>
-
-    <!-- 3. 방 만들기 (Host) -->
+    <!-- 2. 방 만들기 (Host) -->
     <div id="screen-host" class="screen">
         <div class="panel">
             <h2>방 생성 완료!</h2>
@@ -145,9 +150,8 @@
             <div id="room-code-display" style="font-size:4rem; font-family:'Black Han Sans'; color:var(--accent); letter-spacing:5px; margin:20px 0;">로딩중</div>
             <div style="margin-bottom:20px; font-size:1.1rem;">접속 대기중... <span id="player-count" style="color:var(--accent); font-weight:bold; font-size:1.5rem;">1</span> / 6 명</div>
             
-            <!-- AI 추가/제거 버튼 (추가된 부분) -->
             <div style="margin-bottom: 25px; display: flex; justify-content: center; gap: 10px;">
-                <button class="btn btn-sub" style="width:130px; font-size:1rem; padding:10px; margin:0;" onclick="addBot()">+ AI 추가</button>
+                <button class="btn btn-sub" style="width:130px; font-size:1rem; padding:10px; margin:0;" onclick="addBot()">+ AI 봇 추가</button>
                 <button class="btn btn-sub" style="width:130px; font-size:1rem; padding:10px; margin:0; background:#333;" onclick="removeBot()">- AI 제거</button>
             </div>
 
@@ -156,7 +160,7 @@
         </div>
     </div>
 
-    <!-- 4. 방 접속 (Guest) -->
+    <!-- 3. 방 접속 (Guest) -->
     <div id="screen-join" class="screen">
         <div class="panel">
             <h2>방 코드 입력</h2>
@@ -167,7 +171,7 @@
         </div>
     </div>
 
-    <!-- 5. 게임 화면 -->
+    <!-- 4. 게임 화면 -->
     <div id="screen-game" class="screen">
         <div class="game-layout">
             <div class="top-area" id="opponents-container"></div>
@@ -183,93 +187,51 @@
             </div>
 
             <div class="bottom-area">
+                <!-- 티배깅 매크로 영역 -->
+                <div class="chat-controls">
+                    <button class="chat-macro" onclick="sendChat('ㅋㅋㅋㅋㅋ')">ㅋㅋㅋㅋㅋ</button>
+                    <button class="chat-macro" onclick="sendChat('꺼억~ 달달하네')">꺼억~</button>
+                    <button class="chat-macro" onclick="sendChat('수고링~')">수고링~</button>
+                    <button class="chat-macro" onclick="sendChat('아 까비...')">아 까비...</button>
+                    <button class="chat-macro" onclick="sendChat('아 왜 나만!!')">아 왜 나만!!</button>
+                    <button class="chat-macro" onclick="sendChat('살려주세요 ㅠㅠ')">살려주세요</button>
+                </div>
+
                 <div class="my-info">
                     <div class="my-score-wrap">
                         <span style="color:#aaa;">내 점수:</span>
                         <div class="my-score" id="my-score">0</div>
                     </div>
                     <button class="btn submit-btn" id="submit-btn" onclick="submitCard()">카드 내기!</button>
+                    <!-- 내 말풍선 -->
+                    <div id="my-chat-bubble" class="chat-bubble"></div>
                 </div>
                 <div class="my-hand" id="my-hand"></div>
             </div>
         </div>
     </div>
 
-    <!-- 6. 튜토리얼 화면 -->
-    <div id="screen-tutorial" class="screen">
-        <div class="tutorial-stage" id="tut-stage">
-            <div class="tut-text" id="tut-title">독수리 눈치게임 룰 가이드</div>
-            <div class="tut-subtext" id="tut-desc">모두 1~15까지의 카드를 한 벌씩 가집니다.<br>중앙에 공개되는 점수 카드를 걸고 비공개 입찰을 합니다.</div>
-            <div id="tut-card-layer"></div>
-        </div>
-        <div class="tut-controls">
-            <button class="btn btn-sub" style="width:150px;" onclick="showScreen('screen-menu')">종료</button>
-            <button class="btn" style="width:150px;" onclick="nextTutStep()" id="tut-next-btn">시작하기</button>
-        </div>
-    </div>
-
 <script>
     // ==========================================
-    // 효과음 시스템 (Web Audio API)
+    // 효과음 시스템 
     // ==========================================
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
-
-    function initAudio() {
-        if (!audioCtx) audioCtx = new AudioContext();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
+    function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
     function playSound(type) {
         if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
-
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination); const now = audioCtx.currentTime;
         switch(type) {
-            case 'select':
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1); break;
-            case 'submit':
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now); osc.stop(now + 0.15); break;
-            case 'reveal':
-                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
-                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1); break;
-            case 'win_round':
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
-                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 0.4);
-                osc.start(now); osc.stop(now + 0.4); break;
-            case 'lose_round':
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                osc.start(now); osc.stop(now + 0.3); break;
-            case 'bomb':
-                osc.type = 'square'; osc.frequency.setValueAtTime(100, now);
-                gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                osc.start(now); osc.stop(now + 0.4); break;
-            case 'game_win':
-                osc.type = 'square';
-                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-                    osc.frequency.setValueAtTime(freq, now + i*0.15);
-                });
-                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 1.0);
-                osc.start(now); osc.stop(now + 1.0); break;
-            case 'game_lose':
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(100, now + 0.8);
-                gain.gain.setValueAtTime(0.4, now); gain.gain.linearRampToValueAtTime(0, now + 1.0);
-                osc.start(now); osc.stop(now + 1.0); break;
+            case 'select': osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1); break;
+            case 'submit': osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15); break;
+            case 'reveal': osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1200, now + 0.1); gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 0.1); osc.start(now); osc.stop(now + 0.1); break;
+            case 'win_round': osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2); gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 0.4); osc.start(now); osc.stop(now + 0.4); break;
+            case 'lose_round': osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.3); osc.start(now); osc.stop(now + 0.3); break;
+            case 'bomb': osc.type = 'square'; osc.frequency.setValueAtTime(100, now); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); osc.start(now); osc.stop(now + 0.4); break;
         }
     }
 
-    // ==========================================
-    // UI 스크린 제어
-    // ==========================================
     function showScreen(id) {
         initAudio();
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -277,287 +239,202 @@
     }
 
     // ==========================================
-    // 모션 그래픽 튜토리얼
-    // ==========================================
-    let tutStep = 0;
-    const tutTitle = document.getElementById('tut-title');
-    const tutDesc = document.getElementById('tut-desc');
-    const tutCardLayer = document.getElementById('tut-card-layer');
-
-    function startTutorial() {
-        showScreen('screen-tutorial');
-        tutStep = 0; document.getElementById('tut-next-btn').innerText = "시작하기";
-        tutTitle.innerText = "독수리 눈치게임 룰 가이드";
-        tutDesc.innerHTML = "모두 1~15까지의 카드를 한 벌씩 가집니다.<br>중앙에 공개되는 점수 카드를 걸고 비공개 입찰을 합니다.";
-        tutCardLayer.innerHTML = '';
-    }
-
-    function createTutCard(val, type, startX, startY) {
-        const c = document.createElement('div');
-        c.className = `tut-card ${type}`;
-        c.innerText = val > 0 && type !== 'player' ? `+${val}` : val;
-        c.style.left = `${startX}%`; c.style.top = `${startY}%`;
-        c.style.transform = `translate(-50%, -50%)`;
-        if(type === 'hidden') { c.innerText = ''; c.dataset.val = val; }
-        tutCardLayer.appendChild(c); return c;
-    }
-
-    function moveTutCard(card, x, y, flipToType = null) {
-        card.style.left = `${x}%`; card.style.top = `${y}%`; playSound('select');
-        if(flipToType) {
-            card.style.transform = `translate(-50%, -50%) rotateY(180deg)`;
-            setTimeout(() => {
-                card.className = `tut-card ${flipToType}`; playSound('reveal');
-                card.style.transform = `translate(-50%, -50%) rotateY(0deg)`;
-                card.innerText = card.dataset.val;
-            }, 300);
-        }
-    }
-
-    function nextTutStep() {
-        initAudio();
-        document.getElementById('tut-next-btn').innerText = "다음";
-        tutStep++; tutCardLayer.innerHTML = '';
-
-        if (tutStep === 1) {
-            tutTitle.innerText = "1. 플러스 카드 (높은 숫자 승리)";
-            tutDesc.innerText = "중앙에 플러스 점수가 나오면, [가장 큰 카드]를 낸 사람이 점수를 먹습니다.";
-            const pointCard = createTutCard(8, 'plus', 50, -20);
-            setTimeout(() => moveTutCard(pointCard, 50, 40), 100);
-            const p1 = createTutCard(14, 'hidden', 20, 120); const p2 = createTutCard(10, 'hidden', 80, 120);
-            setTimeout(() => { moveTutCard(p1, 35, 60); moveTutCard(p2, 65, 60); }, 1000);
-            setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "왼쪽 플레이어가 14를 내서 10을 이겼습니다!";}, 2500);
-            setTimeout(() => { moveTutCard(pointCard, 35, 60); playSound('win_round'); }, 3500); 
-            setTimeout(() => { pointCard.style.opacity = 0; p1.style.opacity = 0; p2.style.opacity = 0; }, 5000);
-        } 
-        else if (tutStep === 2) {
-            tutTitle.innerText = "2. 마이너스 독수리 카드 (낮은 숫자 독박)";
-            tutDesc.innerText = "중앙에 마이너스 점수가 나오면, [가장 작은 카드]를 낸 사람이 감점을 먹습니다.";
-            const pointCard = createTutCard(-5, 'minus', 50, -20);
-            setTimeout(() => moveTutCard(pointCard, 50, 40), 100);
-            const p1 = createTutCard(3, 'hidden', 20, 120); const p2 = createTutCard(7, 'hidden', 80, 120);
-            setTimeout(() => { moveTutCard(p1, 35, 60); moveTutCard(p2, 65, 60); }, 1000);
-            setTimeout(() => { moveTutCard(p1, 35, 60, 'player'); moveTutCard(p2, 65, 60, 'player'); tutDesc.innerText = "마이너스 점수는 피해야 합니다! 더 작은 3을 낸 플레이어가 독박을 씁니다.";}, 2500);
-            setTimeout(() => { moveTutCard(pointCard, 35, 60); playSound('lose_round'); }, 3500); 
-        }
-        else if (tutStep === 3) {
-            tutTitle.innerText = "3. 동점(눈치싸움) 규칙 - 폭파!";
-            tutDesc.innerText = "같은 숫자를 낸 사람들은 [무효 처리] 됩니다. 유일한 숫자를 낸 사람에게 기회가 넘어갑니다.";
-            const pointCard = createTutCard(10, 'plus', 50, 40);
-            const p1 = createTutCard(15, 'hidden', 20, 120); const p2 = createTutCard(15, 'hidden', 50, 120); const p3 = createTutCard(8, 'hidden', 80, 120);
-            setTimeout(() => { moveTutCard(p1, 20, 70); moveTutCard(p2, 50, 70); moveTutCard(p3, 80, 70); }, 500);
-            setTimeout(() => { moveTutCard(p1, 20, 70, 'player'); moveTutCard(p2, 50, 70, 'player'); moveTutCard(p3, 80, 70, 'player'); tutDesc.innerText="15를 낸 두 명은 무효(폭파)되고, 어부지리로 8을 낸 사람이 10점을 승리합니다!"; }, 2000);
-            setTimeout(() => { p1.style.transform = 'translate(-50%,-50%) scale(0)'; p1.style.opacity=0; p2.style.transform = 'translate(-50%,-50%) scale(0)'; p2.style.opacity=0; playSound('bomb');}, 3500);
-            setTimeout(() => { moveTutCard(pointCard, 80, 70); playSound('win_round'); }, 4500);
-        }
-        else if (tutStep === 4) {
-            tutTitle.innerText = "4. 전원 동점 시 - 이월";
-            tutDesc.innerText = "제출한 카드가 모두 무효처리되면, 중앙의 점수 카드는 다음 라운드로 누적됩니다.";
-            const pointCard1 = createTutCard(7, 'plus', 50, 40);
-            const p1 = createTutCard(12, 'hidden', 35, 120); const p2 = createTutCard(12, 'hidden', 65, 120);
-            setTimeout(() => { moveTutCard(p1, 35, 70); moveTutCard(p2, 65, 70); }, 500);
-            setTimeout(() => { moveTutCard(p1, 35, 70, 'player'); moveTutCard(p2, 65, 70, 'player'); tutDesc.innerText="전원 12로 무효! 카드는 모두 날아가고 +7은 누적됩니다."; }, 2000);
-            setTimeout(() => { p1.style.opacity=0; p2.style.opacity=0; playSound('bomb'); }, 3500);
-            const pointCard2 = createTutCard(5, 'plus', 50, -20);
-            setTimeout(() => { pointCard1.style.left="40%"; moveTutCard(pointCard2, 60, 40); tutDesc.innerText="다음 라운드 승자가 누적된 점수(+12)를 모두 독식합니다!"; }, 4500);
-            setTimeout(() => { document.getElementById('tut-next-btn').innerText = "메인으로"; }, 5000);
-        }
-        else { showScreen('screen-menu'); }
-    }
-
-
-    // ==========================================
-    // 게임 시스템 (AI & Online)
+    // 게임 시스템 & AI 100가지 경우의 수 (이름 숨김)
     // ==========================================
     const APP_PREFIX = 'eagle-';
     let peer, conn;
-    let gameMode = 'ONLINE'; // 'ONLINE' or 'AI'
-    let aiLevel = 'EASY';
+    let gameMode = 'ONLINE'; 
     let myId = 'LOCAL';
     
-    // 호스트 전용 상태
     let players = []; 
     let connections = []; 
     let pointDeck = [];
     let tablePool = [];
-    let hostBotCount = 0; // 호스트가 추가한 AI 봇 수
+    let hostBotCount = 0; 
     
-    // 클라이언트 전용 상태
     let myHand = Array.from({length: 15}, (_, i) => i + 1);
     let myScore = 0;
     let selectedCard = null;
     let isBidded = false;
-
     const generateCode = () => Math.random().toString(36).substring(2, 7).toUpperCase();
 
-    // ---- AI 모드 시작 (싱글) ----
-    function startAIGame(level) {
-        gameMode = 'AI'; aiLevel = level;
-        myId = 'ME';
-        players = [
-            { id: myId, name: '나 (Player)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false },
-            { id: 'BOT1', name: `AI 1 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiLevel: level },
-            { id: 'BOT2', name: `AI 2 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiLevel: level },
-            { id: 'BOT3', name: `AI 3 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiLevel: level }
-        ];
+    // 10가지 성향 (조합시 100가지)
+    function getRandomTraits() {
+        let pool = [0,1,2,3,4,5,6,7,8,9];
+        let t1 = pool[Math.floor(Math.random() * pool.length)];
+        let t2 = pool[Math.floor(Math.random() * pool.length)];
+        return { t1, t2 };
+    }
+
+    function getTraitIndex(len, tableSum, traitId) {
+        switch(traitId) {
+            case 0: return tableSum > 0 ? len - 1 : Math.floor(len * 0.6); // 공격/욕심
+            case 1: return tableSum > 0 ? Math.floor(len * 0.3) : 0; // 방어/소심
+            case 2: return tableSum >= 7 ? len - 1 : (tableSum > 0 ? Math.floor(len*0.6) : Math.floor(len*0.4)); // 계산
+            case 3: return Math.floor(Math.random() * len); // 무작위
+            case 4: return tableSum < 0 ? len - 1 : Math.floor(len * 0.2); // 회피
+            case 5: return tableSum > 0 ? Math.floor(len * 0.8) : Math.floor(len * 0.2); // 트롤
+            case 6: return tableSum > 0 ? 0 : len - 1; // 청개구리
+            case 7: return tableSum > 0 ? Math.floor(len * 0.65) : Math.floor(len * 0.35); // 스나이퍼
+            case 8: return Math.floor(len * 0.5); // 평범
+            case 9: return Math.random() < 0.5 ? 0 : len - 1; // 극단
+            default: return Math.floor(len * 0.5);
+        }
+    }
+
+    function getAICard(hand, tableSum, traits) {
+        let sorted = [...hand].sort((a,b)=>a-b);
+        let len = sorted.length;
+        let idx1 = getTraitIndex(len, tableSum, traits.t1);
+        let idx2 = getTraitIndex(len, tableSum, traits.t2);
+        let finalIdx = Math.floor((idx1 + idx2) / 2) + (Math.floor(Math.random() * 3) - 1);
+        finalIdx = Math.max(0, Math.min(len - 1, finalIdx));
+        return sorted[finalIdx];
+    }
+
+    // ==========================================
+    // AI 챗(티배깅) 매크로 대사집
+    // ==========================================
+    const CHAT_DICT = {
+        0: { win: ["꺼억~ 다 내꺼야!", "점수 달달하네~", "이건 못참지ㅋㅋ"], lose: ["아 내 점수!!", "다음엔 다 죽었어", "아깝네"], pen: ["아씨 왜 나야!", "내 점수 돌려내!"] },
+        1: { win: ["어.. 제가 먹나요?", "휴 다행이다"], lose: ["난 빠져있어야지..", "제발 살려줘"], pen: ["히잉 ㅠㅠ", "왜 맨날 나만.."] },
+        2: { win: ["계산대로군.", "합리적인 결과네요."], lose: ["확률 계산 미스인가..", "흐음..."], pen: ["이건 변수인데..", "손해를 최소화해야..."] },
+        3: { win: ["오예! 찍었는데 맞음ㅋㅋ", "개꿀잼ㅋㅋ"], lose: ["아님 말고~", "주사위 굴리는 중.."], pen: ["아 똥밟았다ㅋㅋ", "뭐 그럴수도 있지"] },
+        4: { win: ["휴 독박은 피했네", "난 피했지롱~"], lose: ["난 무조건 살아야해", "살려주세요.."], pen: ["아 진짜 나한테 왜이래!", "진짜 억울해"] },
+        5: { win: ["ㅋㅋㅋㅋ 개꿀딱", "수고링~"], lose: ["아 폭파 안되나ㅋㅋ", "누가 폭탄좀 터트려봐"], pen: ["아 왜 안겹쳐!!", "너네 짰지!!"] },
+        6: { win: ["내가 남들과 다르지~", "예상 밖이지?ㅋㅋ"], lose: ["아 너무 꼬았나..", "다들 뭐함?ㅋㅋ"], pen: ["아 반대로 낼걸!", "망했다..."] },
+        7: { win: ["정확히 저격 성공.", "딱 내 생각대로네."], lose: ["아 1 차이로 지네", "아깝게 놓침"], pen: ["계산이 빗나갔군..", "큭.."] },
+        8: { win: ["무난하게 먹었네.", "평타는 쳤다."], lose: ["튀지 말아야지..", "조용히 갈게요"], pen: ["아 조용히 있었는데", "평균만 가자.."] },
+        9: { win: ["모 아니면 도지!!", "화끈하게 먹었다!"], lose: ["아 너무 질렀나", "극단적이긴 했어"], pen: ["아 망했다!!", "인생 한방인데.."] }
+    };
+
+    function triggerAIChat(winnerId, points, isBomb) {
+        players.forEach(p => {
+            if(!p.isBot) return;
+            if(Math.random() < 0.3) return; // 30% 확률로 침묵
+
+            let phraseObj = CHAT_DICT[p.aiTraits.t1];
+            let msgList = [];
+
+            if (isBomb) {
+                msgList = ["아 폭파 ㅋㅋㅋ", "이게 터지네", "ㅋㅋㅋㅋㅋㅋ", "이게 게임이지", "다 날아갔네 엌ㅋㅋ"];
+            } else if (points < 0) {
+                if (p.id === winnerId) msgList = phraseObj.pen; // 본인이 마이너스 먹음
+                else msgList = ["ㅋㅋㅋㅋ 컷!", "잘먹어~", "휴 다행이다", "나이스ㅋㅋ", "꺼어어어억"]; // 남이 마이너스 먹음 (티배깅)
+            } else {
+                if (p.id === winnerId) msgList = phraseObj.win; // 본인이 점수 먹음
+                else msgList = phraseObj.lose; // 남이 점수 먹음
+            }
+
+            let msg = msgList[Math.floor(Math.random() * msgList.length)];
+            setTimeout(() => { broadcastChat(p.id, msg); showChat(p.id, msg); }, 600 + Math.random() * 1500);
+        });
+    }
+
+    // 채팅 발송 (내 버튼 클릭 시)
+    function sendChat(msg) {
+        showChat(myId, msg);
+        broadcastChat(myId, msg);
+    }
+    
+    function broadcastChat(senderId, msg) {
+        broadcast({ type: 'CHAT', id: senderId, msg: msg });
+    }
+
+    // 말풍선 렌더링
+    function showChat(id, msg) {
+        let bubble = id === myId ? document.getElementById('my-chat-bubble') : document.getElementById(`chat-${id}`);
+        if(!bubble) return;
+        bubble.innerText = msg;
+        bubble.classList.add('show');
         
-        pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10];
-        pointDeck.sort(() => Math.random() - 0.5); 
-        tablePool = [];
+        // 기존 타이머 클리어 후 3초 뒤 말풍선 숨김
+        if(bubble.timeoutId) clearTimeout(bubble.timeoutId);
+        bubble.timeoutId = setTimeout(() => { bubble.classList.remove('show'); }, 3000);
+    }
+
+
+    // ---- 싱글 플레이 (AI 모드) ----
+    function startAIGame() {
+        gameMode = 'AI'; myId = 'ME';
+        players = [{ id: myId, name: '나 (Player)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false }];
         
-        showScreen('screen-game');
-        initGameUI();
-        startRound();
+        for(let i=1; i<=3; i++) {
+            // 플레이어는 성향을 모르게 이름은 그냥 'AI 1', 'AI 2' 로 고정
+            players.push({
+                id: 'BOT' + i, name: `AI 봇 ${i}`, score: 0,
+                hand: Array.from({length:15},(_,i)=>i+1), currentBid: null,
+                isBot: true, aiTraits: getRandomTraits()
+            });
+        }
+        pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10].sort(() => Math.random() - 0.5); 
+        tablePool = []; showScreen('screen-game'); initGameUI(); startRound();
     }
 
     // ---- HOST LOGIC (ONLINE) ----
     function startHostRoom() {
-        showScreen('screen-host');
-        gameMode = 'ONLINE';
-        const code = generateCode();
-        document.getElementById('room-code-display').innerText = code;
-        
+        showScreen('screen-host'); gameMode = 'ONLINE';
+        const code = generateCode(); document.getElementById('room-code-display').innerText = code;
         peer = new Peer(APP_PREFIX + code);
-        peer.on('open', id => {
-            myId = id;
-            // 호스트(나)는 봇이 아님
-            players = [{ id: myId, name: 'Host (나)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false }];
-            updateLobbyUI();
-        });
-
-        peer.on('connection', connection => {
-            if (players.length >= 6) { connection.close(); return; }
-            connections.push(connection);
-            const guestId = connection.peer;
-            // 참가자(사람)은 봇이 아님
+        peer.on('open', id => { myId = id; players = [{ id: myId, name: 'Host (나)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false }]; updateLobbyUI(); });
+        peer.on('connection', conn => {
+            if (players.length >= 6) { conn.close(); return; }
+            connections.push(conn); const guestId = conn.peer;
             players.push({ id: guestId, name: `Player ${players.length+1}`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false });
             updateLobbyUI();
-
-            connection.on('data', data => { if (data.type === 'BID') handlePlayerBid(guestId, data.card); });
-            connection.on('close', () => {
-                players = players.filter(p => p.id !== guestId);
-                connections = connections.filter(c => c.peer !== guestId);
-                updateLobbyUI();
+            conn.on('data', data => { 
+                if (data.type === 'BID') handlePlayerBid(guestId, data.card); 
+                if (data.type === 'CHAT') { syncClientState(data); broadcastChat(data.id, data.msg); } // 호스트가 받아서 모두에게 중계
             });
+            conn.on('close', () => { players = players.filter(p => p.id !== guestId); connections = connections.filter(c => c.peer !== guestId); updateLobbyUI(); });
         });
     }
 
-    // 호스트가 대기실에서 AI 추가
     function addBot() {
         if (players.length >= 6) return alert("최대 6명까지만 참여 가능합니다.");
         hostBotCount++;
-        players.push({
-            id: 'HOST_BOT_' + hostBotCount,
-            name: `AI 봇 ${hostBotCount}`,
-            score: 0,
-            hand: Array.from({length:15},(_,i)=>i+1),
-            currentBid: null,
-            isBot: true, // 봇 플래그
-            aiLevel: 'NORMAL' // 기본 난이도
-        });
+        players.push({ id: 'HOST_BOT_' + hostBotCount, name: `AI 봇 ${hostBotCount}`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiTraits: getRandomTraits() });
         updateLobbyUI();
     }
 
-    // 호스트가 대기실에서 AI 제거
     function removeBot() {
         const botIndex = players.map(p => p.isBot).lastIndexOf(true);
-        if (botIndex > -1) {
-            players.splice(botIndex, 1);
-            hostBotCount--;
-            updateLobbyUI();
-        } else {
-            alert("제거할 AI 봇이 없습니다.");
-        }
+        if (botIndex > -1) { players.splice(botIndex, 1); hostBotCount--; updateLobbyUI(); } else { alert("제거할 AI 봇이 없습니다."); }
     }
 
     function updateLobbyUI() {
         document.getElementById('player-count').innerText = players.length;
         const startBtn = document.getElementById('start-game-btn');
-        if(players.length >= 3 && players.length <= 6) {
-            startBtn.disabled = false; startBtn.innerText = "게임 시작하기";
-        } else {
-            startBtn.disabled = true; startBtn.innerText = "인원 부족 (시작 불가)";
-        }
+        if(players.length >= 3 && players.length <= 6) { startBtn.disabled = false; startBtn.innerText = "게임 시작하기"; } else { startBtn.disabled = true; startBtn.innerText = "인원 부족 (시작 불가)"; }
         broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({id: p.id, name: p.name})) });
     }
 
     function startGameAsHost() {
         if(players.length < 3) return; 
-        pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10];
-        pointDeck.sort(() => Math.random() - 0.5); 
-        tablePool = [];
-        
-        broadcast({ type: 'GAME_START' });
-        showScreen('screen-game');
-        initGameUI();
-        startRound();
+        pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10].sort(() => Math.random() - 0.5); tablePool = [];
+        broadcast({ type: 'GAME_START' }); showScreen('screen-game'); initGameUI(); startRound();
     }
 
     function startRound() {
         if(pointDeck.length === 0) { endGame(); return; }
-        
-        const drawn = pointDeck.pop();
-        tablePool.push(drawn);
+        const drawn = pointDeck.pop(); tablePool.push(drawn);
         players.forEach(p => p.currentBid = null); 
         
-        const state = {
-            type: 'ROUND_START', tablePool, deckRemaining: pointDeck.length,
-            players: players.map(p => ({ id: p.id, name: p.name, score: p.score, hasBidded: false }))
-        };
+        const state = { type: 'ROUND_START', tablePool, deckRemaining: pointDeck.length, players: players.map(p => ({ id: p.id, name: p.name, score: p.score, hasBidded: false })) };
         broadcast(state); syncClientState(state);
 
-        // 봇(AI 모드든, 온라인 방에 섞인 봇이든)이라면 자동 입찰 실행
         const currentTableSum = tablePool.reduce((a,b)=>a+b, 0);
         players.forEach(p => {
-            if (p.isBot) {
-                const delay = 1000 + Math.random() * 2000; // 1~3초 생각
-                setTimeout(() => {
-                    const botLevel = p.aiLevel || 'NORMAL';
-                    const botCard = getAICard(p.hand, currentTableSum, botLevel);
-                    handlePlayerBid(p.id, botCard);
-                }, delay);
-            }
+            if (p.isBot) { setTimeout(() => { handlePlayerBid(p.id, getAICard(p.hand, currentTableSum, p.aiTraits)); }, 1000 + Math.random() * 2000); }
         });
-    }
-
-    // AI 카드 선택 지능 로직
-    function getAICard(hand, tableSum, level) {
-        let sorted = [...hand].sort((a,b)=>a-b);
-        if (level === 'EASY') return hand[Math.floor(Math.random() * hand.length)];
-        
-        if (level === 'NORMAL') {
-            if (tableSum > 0) {
-                let idx = Math.floor(sorted.length * 0.7) + (Math.floor(Math.random()*3)-1);
-                return sorted[Math.max(0, Math.min(sorted.length-1, idx))];
-            } else {
-                return sorted[Math.floor(sorted.length * 0.5)];
-            }
-        }
-        
-        if (level === 'HARD') {
-            if (tableSum >= 8) {
-                let idx = sorted.length - 1 - Math.floor(Math.random()*2);
-                return sorted[Math.max(0, idx)];
-            } else if (tableSum > 0) {
-                let idx = Math.floor(sorted.length * 0.6) + Math.floor(Math.random()*2);
-                return sorted[Math.max(0, Math.min(sorted.length-1, idx))];
-            } else {
-                let idx = sorted.length - 1 - Math.floor(Math.random()*3); // 마이너스는 가능한 큰걸 내서 독박 회피
-                return sorted[Math.max(0, idx)];
-            }
-        }
-        return hand[0];
     }
 
     function handlePlayerBid(id, cardValue) {
         const p = players.find(p => p.id === id);
         if(p && p.currentBid === null && p.hand.includes(cardValue)) {
-            p.currentBid = cardValue;
-            p.hand = p.hand.filter(c => c !== cardValue); 
-            
+            p.currentBid = cardValue; p.hand = p.hand.filter(c => c !== cardValue); 
             const allBidded = players.every(pl => pl.currentBid !== null);
-            if (allBidded) { resolveRound(); } 
-            else {
+            if (allBidded) { resolveRound(); } else {
                 const state = { type: 'BID_UPDATE', players: players.map(pl => ({ id: pl.id, hasBidded: pl.currentBid !== null })) };
                 broadcast(state); syncClientState(state);
             }
@@ -566,29 +443,25 @@
 
     function resolveRound() {
         const bids = players.map(p => ({ id: p.id, card: p.currentBid }));
-        const revealState = { type: 'ROUND_REVEAL', bids };
-        broadcast(revealState); syncClientState(revealState);
+        broadcast({ type: 'ROUND_REVEAL', bids }); syncClientState({ type: 'ROUND_REVEAL', bids });
 
         setTimeout(() => {
             const tableSum = tablePool.reduce((a,b)=>a+b, 0);
-            const bidCounts = {};
-            players.forEach(p => { bidCounts[p.currentBid] = (bidCounts[p.currentBid] || 0) + 1; });
+            const bidCounts = {}; players.forEach(p => { bidCounts[p.currentBid] = (bidCounts[p.currentBid] || 0) + 1; });
             const validBids = players.filter(p => bidCounts[p.currentBid] === 1);
             let winner = null;
 
             if (validBids.length > 0) {
                 if (tableSum >= 0) winner = validBids.reduce((prev, curr) => (prev.currentBid > curr.currentBid) ? prev : curr);
                 else winner = validBids.reduce((prev, curr) => (prev.currentBid < curr.currentBid) ? prev : curr);
-                
-                winner.score += tableSum;
-                tablePool = []; 
+                winner.score += tableSum; tablePool = []; 
             }
             
-            const resultState = {
-                type: 'ROUND_RESULT', winnerId: winner ? winner.id : null,
-                points: tableSum, players: players.map(p => ({id: p.id, score: p.score}))
-            };
+            const resultState = { type: 'ROUND_RESULT', winnerId: winner ? winner.id : null, points: tableSum, players: players.map(p => ({id: p.id, score: p.score})) };
             broadcast(resultState); syncClientState(resultState);
+            
+            // 승패 결과에 따라 봇 티배깅(채팅) 발동
+            triggerAIChat(winner ? winner.id : null, tableSum, winner === null);
 
             setTimeout(() => { startRound(); }, 4000);
         }, 2000); 
@@ -596,28 +469,19 @@
 
     function endGame() {
         const sorted = [...players].sort((a,b) => b.score - a.score);
-        const winner = sorted[0];
-        const msg = { type: 'GAME_OVER', winnerId: winner.id, winnerName: winner.name, sortedScores: sorted.map(p => ({name: p.name, score: p.score})) };
-        broadcast(msg); syncClientState(msg);
+        broadcast({ type: 'GAME_OVER', winnerId: sorted[0].id, winnerName: sorted[0].name, sortedScores: sorted.map(p => ({name: p.name, score: p.score})) });
+        syncClientState({ type: 'GAME_OVER', winnerId: sorted[0].id, winnerName: sorted[0].name, sortedScores: sorted.map(p => ({name: p.name, score: p.score})) });
     }
 
-    function broadcast(data) {
-        if(gameMode === 'ONLINE') connections.forEach(c => c.send(data));
-    }
-
+    function broadcast(data) { if(gameMode === 'ONLINE') connections.forEach(c => c.send(data)); }
 
     // ---- GUEST LOGIC ----
     function joinRoom() {
-        gameMode = 'ONLINE';
-        const code = document.getElementById('join-code').value.trim().toUpperCase();
+        gameMode = 'ONLINE'; const code = document.getElementById('join-code').value.trim().toUpperCase();
         if(code.length !== 5) return alert("5자리 코드를 입력하세요.");
-        
-        document.getElementById('join-status').innerText = "접속 중...";
-        peer = new Peer();
-        
+        document.getElementById('join-status').innerText = "접속 중..."; peer = new Peer();
         peer.on('open', id => {
-            myId = id;
-            conn = peer.connect(APP_PREFIX + code, { reliable: true });
+            myId = id; conn = peer.connect(APP_PREFIX + code, { reliable: true });
             conn.on('open', () => document.getElementById('join-status').innerText = "호스트 대기중...");
             conn.on('data', data => { syncClientState(data); });
             conn.on('close', () => { alert("연결이 끊어졌습니다."); location.reload(); });
@@ -625,12 +489,14 @@
         peer.on('error', () => { document.getElementById('join-status').innerText = "방을 찾을 수 없습니다."; });
     }
 
-
     // ---- SHARED CLIENT/UI LOGIC ----
     let opponentData = [];
 
     function syncClientState(data) {
         switch(data.type) {
+            case 'CHAT':
+                if (data.id !== myId) showChat(data.id, data.msg); // 남이 보낸 채팅 렌더링
+                break;
             case 'LOBBY_UPDATE':
                 if(conn) document.getElementById('join-status').innerText = "참가 완료! 호스트의 시작을 기다립니다.";
                 break;
@@ -638,118 +504,64 @@
                 showScreen('screen-game'); initGameUI();
                 break;
             case 'ROUND_START':
-                tablePool = data.tablePool;
-                opponentData = data.players.filter(p => p.id !== myId);
-                const me = data.players.find(p => p.id === myId);
-                myScore = me ? me.score : myScore;
-                
-                isBidded = false; selectedCard = null;
-                document.getElementById('deck-count').innerText = data.deckRemaining;
-                
+                tablePool = data.tablePool; opponentData = data.players.filter(p => p.id !== myId);
+                const me = data.players.find(p => p.id === myId); myScore = me ? me.score : myScore;
+                isBidded = false; selectedCard = null; document.getElementById('deck-count').innerText = data.deckRemaining;
                 renderTablePool(); renderOpponents(); renderMyHand();
-                document.getElementById('my-score').innerText = myScore;
-                document.getElementById('game-msg').innerText = "카드를 선택하세요!";
+                document.getElementById('my-score').innerText = myScore; document.getElementById('game-msg').innerText = "카드를 선택하세요!";
                 break;
             case 'BID_UPDATE':
-                opponentData.forEach(opp => {
-                    const update = data.players.find(p => p.id === opp.id);
-                    if(update) opp.hasBidded = update.hasBidded;
-                });
+                opponentData.forEach(opp => { const update = data.players.find(p => p.id === opp.id); if(update) opp.hasBidded = update.hasBidded; });
                 renderOpponents();
                 break;
             case 'ROUND_REVEAL':
                 playSound('reveal');
-                data.bids.forEach(b => {
-                    if(b.id !== myId) {
-                        const el = document.getElementById(`opp-card-${b.id}`);
-                        if(el) { el.classList.remove('hidden'); el.classList.add('player'); el.innerText = b.card; }
-                    }
-                });
+                data.bids.forEach(b => { if(b.id !== myId) { const el = document.getElementById(`opp-card-${b.id}`); if(el) { el.classList.remove('hidden'); el.classList.add('player'); el.innerText = b.card; } } });
                 document.getElementById('game-msg').innerText = "결과 판정 중...";
                 break;
             case 'ROUND_RESULT':
-                opponentData.forEach(opp => {
-                    const update = data.players.find(p => p.id === opp.id);
-                    if(update) opp.score = update.score;
-                });
+                opponentData.forEach(opp => { const update = data.players.find(p => p.id === opp.id); if(update) opp.score = update.score; });
                 const updatedMe = data.players.find(p => p.id === myId);
                 if(updatedMe) { myScore = updatedMe.score; document.getElementById('my-score').innerText = myScore; }
                 
-                if (data.winnerId === null) {
-                    document.getElementById('game-msg').innerText = "전원 동점(폭파)! 카드 이월됨!";
-                    playSound('bomb');
-                } else if (data.winnerId === myId) {
-                    document.getElementById('game-msg').innerText = `당신이 점수(${data.points})를 획득했습니다!`;
-                    data.points > 0 ? playSound('win_round') : playSound('lose_round');
-                } else {
-                    const w = opponentData.find(o => o.id === data.winnerId);
-                    document.getElementById('game-msg').innerText = `${w ? w.name : '누군가'}가 점수 획득!`;
-                }
+                if (data.winnerId === null) { document.getElementById('game-msg').innerText = "전원 동점(폭파)! 카드 이월됨!"; playSound('bomb'); } 
+                else if (data.winnerId === myId) { document.getElementById('game-msg').innerText = `당신이 점수(${data.points})를 획득했습니다!`; data.points > 0 ? playSound('win_round') : playSound('lose_round'); } 
+                else { const w = opponentData.find(o => o.id === data.winnerId); document.getElementById('game-msg').innerText = `${w ? w.name : '누군가'}가 점수 획득!`; }
                 renderOpponents();
                 break;
             case 'GAME_OVER':
                 if (data.winnerId === myId) playSound('game_win'); else playSound('game_lose');
-                
                 let finalMsg = `<h2>게임 종료!</h2><br><h3 style="color:var(--accent);">우승: ${data.winnerName}</h3><br><div style="text-align:left; margin-top:20px;">`;
-                data.sortedScores.forEach((s, idx) => {
-                    finalMsg += `<p style="margin:5px 0; font-size:1.1rem;">${idx+1}위: ${s.name} <span style="color:var(--accent);">(${s.score}점)</span></p>`;
-                });
+                data.sortedScores.forEach((s, idx) => { finalMsg += `<p style="margin:5px 0; font-size:1.1rem;">${idx+1}위: ${s.name} <span style="color:var(--accent);">(${s.score}점)</span></p>`; });
                 finalMsg += `</div><br><button class="btn" style="margin-top:20px;" onclick="location.reload()">메인으로</button>`;
-                document.getElementById('game-msg').innerHTML = "";
-                document.getElementById('center-pool').innerHTML = `<div class="panel" style="background:#222; border-color:var(--accent); width:auto;">${finalMsg}</div>`;
+                document.getElementById('game-msg').innerHTML = ""; document.getElementById('center-pool').innerHTML = `<div class="panel" style="background:#222; border-color:var(--accent); width:auto;">${finalMsg}</div>`;
                 document.getElementById('my-hand').innerHTML = '';
                 break;
         }
     }
 
-    function initGameUI() {
-        document.getElementById('deck-card').classList.remove('hidden');
-        document.getElementById('deck-card').classList.add('plus'); 
-        document.getElementById('deck-card').innerText = "EAGLE";
-        document.getElementById('deck-card').style.fontSize = "1rem";
-    }
-
-    function renderTablePool() {
-        const pool = document.getElementById('center-pool');
-        pool.innerHTML = '';
-        tablePool.forEach(val => {
-            const c = document.createElement('div');
-            c.className = `card ${val > 0 ? 'plus' : 'minus'}`;
-            c.innerText = val > 0 ? `+${val}` : val;
-            pool.appendChild(c);
-        });
-    }
-
+    function initGameUI() { document.getElementById('deck-card').classList.remove('hidden'); document.getElementById('deck-card').classList.add('plus'); document.getElementById('deck-card').innerText = "EAGLE"; document.getElementById('deck-card').style.fontSize = "1rem"; }
+    function renderTablePool() { const pool = document.getElementById('center-pool'); pool.innerHTML = ''; tablePool.forEach(val => { const c = document.createElement('div'); c.className = `card ${val > 0 ? 'plus' : 'minus'}`; c.innerText = val > 0 ? `+${val}` : val; pool.appendChild(c); }); }
+    
     function renderOpponents() {
-        const container = document.getElementById('opponents-container');
-        container.innerHTML = '';
+        const container = document.getElementById('opponents-container'); container.innerHTML = '';
         opponentData.forEach(opp => {
-            const wrap = document.createElement('div');
-            wrap.className = 'opponent';
+            const wrap = document.createElement('div'); wrap.className = 'opponent-wrapper';
+            // 상대방 영역 내부에 말풍선 div 추가
+            let bubbleHtml = `<div id="chat-${opp.id}" class="chat-bubble"></div>`;
             let cardHtml = `<div id="opp-card-${opp.id}" class="card hidden" style="width:35px; height:50px; font-size:1.2rem; margin: 8px auto; opacity: ${opp.hasBidded ? 1 : 0.2}">?</div>`;
-            wrap.innerHTML = `
-                <div class="opp-name" title="${opp.name}">${opp.name}</div>
-                <div class="opp-score">${opp.score}</div>
-                ${cardHtml}
-                <div class="opp-status ${opp.hasBidded ? 'ready' : ''}">${opp.hasBidded ? '제출 완료' : '고민중...'}</div>
-            `;
+            wrap.innerHTML = `<div class="opponent">${bubbleHtml}<div class="opp-name" title="${opp.name}">${opp.name}</div><div class="opp-score">${opp.score}</div>${cardHtml}<div class="opp-status ${opp.hasBidded ? 'ready' : ''}">${opp.hasBidded ? '제출 완료' : '고민중...'}</div></div>`;
             container.appendChild(wrap);
         });
     }
 
     function renderMyHand() {
-        const hand = document.getElementById('my-hand');
-        hand.innerHTML = '';
-        const btn = document.getElementById('submit-btn');
-        btn.style.display = 'none';
-
+        const hand = document.getElementById('my-hand'); hand.innerHTML = '';
+        const btn = document.getElementById('submit-btn'); btn.style.display = 'none';
         myHand.forEach(val => {
-            const c = document.createElement('div');
-            c.className = 'card player selectable';
-            c.innerText = val;
+            const c = document.createElement('div'); c.className = 'card player selectable'; c.innerText = val;
             c.onclick = () => {
-                if(isBidded) return;
-                playSound('select');
+                if(isBidded) return; playSound('select');
                 document.querySelectorAll('.my-hand .card').forEach(el => el.classList.remove('selected'));
                 c.classList.add('selected'); selectedCard = val; btn.style.display = 'block';
             };
@@ -759,19 +571,12 @@
 
     function submitCard() {
         if(selectedCard === null || isBidded) return;
-        
         isBidded = true; playSound('submit');
-        document.getElementById('submit-btn').style.display = 'none';
-        document.getElementById('game-msg').innerText = "제출 완료! 상대방 대기중...";
+        document.getElementById('submit-btn').style.display = 'none'; document.getElementById('game-msg').innerText = "제출 완료! 상대방 대기중...";
+        myHand = myHand.filter(v => v !== selectedCard); renderMyHand();
         
-        myHand = myHand.filter(v => v !== selectedCard);
-        renderMyHand();
-
-        if (gameMode === 'AI' || (gameMode === 'ONLINE' && !conn)) {
-            handlePlayerBid(myId, selectedCard);
-        } else {
-            conn.send({ type: 'BID', card: selectedCard });
-        }
+        if (gameMode === 'AI' || (gameMode === 'ONLINE' && !conn)) { handlePlayerBid(myId, selectedCard); } 
+        else { conn.send({ type: 'BID', card: selectedCard }); }
     }
 </script>
 </body>

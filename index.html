@@ -143,7 +143,14 @@
             <h2>방 생성 완료!</h2>
             <p style="margin-top:20px; color:#ccc;">최소 3명 ~ 최대 6명이 모여야 시작할 수 있습니다.</p>
             <div id="room-code-display" style="font-size:4rem; font-family:'Black Han Sans'; color:var(--accent); letter-spacing:5px; margin:20px 0;">로딩중</div>
-            <div style="margin-bottom:30px; font-size:1.1rem;">접속 대기중... <span id="player-count" style="color:var(--accent); font-weight:bold; font-size:1.5rem;">1</span> / 6 명</div>
+            <div style="margin-bottom:20px; font-size:1.1rem;">접속 대기중... <span id="player-count" style="color:var(--accent); font-weight:bold; font-size:1.5rem;">1</span> / 6 명</div>
+            
+            <!-- AI 추가/제거 버튼 (추가된 부분) -->
+            <div style="margin-bottom: 25px; display: flex; justify-content: center; gap: 10px;">
+                <button class="btn btn-sub" style="width:130px; font-size:1rem; padding:10px; margin:0;" onclick="addBot()">+ AI 추가</button>
+                <button class="btn btn-sub" style="width:130px; font-size:1rem; padding:10px; margin:0; background:#333;" onclick="removeBot()">- AI 제거</button>
+            </div>
+
             <button class="btn" onclick="startGameAsHost()" id="start-game-btn" style="width:100%;" disabled>인원 부족 (시작 불가)</button>
             <button class="btn btn-sub" style="width:100%; margin-top:10px;" onclick="location.reload()">메인으로</button>
         </div>
@@ -221,39 +228,39 @@
         const now = audioCtx.currentTime;
 
         switch(type) {
-            case 'select': // 카드 선택
+            case 'select':
                 osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
                 gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                 osc.start(now); osc.stop(now + 0.1); break;
-            case 'submit': // 카드 제출
+            case 'submit':
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
                 gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now); osc.stop(now + 0.15); break;
-            case 'reveal': // 결과 공개 (카드가 뒤집히는 슉 소리)
+            case 'reveal':
                 osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
                 gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 0.1);
                 osc.start(now); osc.stop(now + 0.1); break;
-            case 'win_round': // 플러스 점수 획득
+            case 'win_round':
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
                 gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 0.4);
                 osc.start(now); osc.stop(now + 0.4); break;
-            case 'lose_round': // 마이너스 점수 독박
+            case 'lose_round':
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3);
                 gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
                 osc.start(now); osc.stop(now + 0.3); break;
-            case 'bomb': // 동점 폭파
+            case 'bomb':
                 osc.type = 'square'; osc.frequency.setValueAtTime(100, now);
                 gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
                 osc.start(now); osc.stop(now + 0.4); break;
-            case 'game_win': // 최종 우승 팡파르
+            case 'game_win':
                 osc.type = 'square';
                 [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                     osc.frequency.setValueAtTime(freq, now + i*0.15);
                 });
                 gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0, now + 1.0);
                 osc.start(now); osc.stop(now + 1.0); break;
-            case 'game_lose': // 최종 패배
+            case 'game_lose':
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(100, now + 0.8);
                 gain.gain.setValueAtTime(0.4, now); gain.gain.linearRampToValueAtTime(0, now + 1.0);
                 osc.start(now); osc.stop(now + 1.0); break;
@@ -373,6 +380,7 @@
     let connections = []; 
     let pointDeck = [];
     let tablePool = [];
+    let hostBotCount = 0; // 호스트가 추가한 AI 봇 수
     
     // 클라이언트 전용 상태
     let myHand = Array.from({length: 15}, (_, i) => i + 1);
@@ -382,15 +390,15 @@
 
     const generateCode = () => Math.random().toString(36).substring(2, 7).toUpperCase();
 
-    // ---- AI 모드 시작 ----
+    // ---- AI 모드 시작 (싱글) ----
     function startAIGame(level) {
         gameMode = 'AI'; aiLevel = level;
         myId = 'ME';
         players = [
-            { id: myId, name: '나 (Player)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null },
-            { id: 'BOT1', name: `AI 1 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null },
-            { id: 'BOT2', name: `AI 2 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null },
-            { id: 'BOT3', name: `AI 3 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null }
+            { id: myId, name: '나 (Player)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false },
+            { id: 'BOT1', name: `AI 1 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiLevel: level },
+            { id: 'BOT2', name: `AI 2 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiLevel: level },
+            { id: 'BOT3', name: `AI 3 (${level})`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: true, aiLevel: level }
         ];
         
         pointDeck = [-5,-4,-3,-2,-1, 1,2,3,4,5,6,7,8,9,10];
@@ -412,7 +420,8 @@
         peer = new Peer(APP_PREFIX + code);
         peer.on('open', id => {
             myId = id;
-            players = [{ id: myId, name: 'Host (나)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null }];
+            // 호스트(나)는 봇이 아님
+            players = [{ id: myId, name: 'Host (나)', score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false }];
             updateLobbyUI();
         });
 
@@ -420,7 +429,8 @@
             if (players.length >= 6) { connection.close(); return; }
             connections.push(connection);
             const guestId = connection.peer;
-            players.push({ id: guestId, name: `Player ${players.length+1}`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null });
+            // 참가자(사람)은 봇이 아님
+            players.push({ id: guestId, name: `Player ${players.length+1}`, score: 0, hand: Array.from({length:15},(_,i)=>i+1), currentBid: null, isBot: false });
             updateLobbyUI();
 
             connection.on('data', data => { if (data.type === 'BID') handlePlayerBid(guestId, data.card); });
@@ -430,6 +440,34 @@
                 updateLobbyUI();
             });
         });
+    }
+
+    // 호스트가 대기실에서 AI 추가
+    function addBot() {
+        if (players.length >= 6) return alert("최대 6명까지만 참여 가능합니다.");
+        hostBotCount++;
+        players.push({
+            id: 'HOST_BOT_' + hostBotCount,
+            name: `AI 봇 ${hostBotCount}`,
+            score: 0,
+            hand: Array.from({length:15},(_,i)=>i+1),
+            currentBid: null,
+            isBot: true, // 봇 플래그
+            aiLevel: 'NORMAL' // 기본 난이도
+        });
+        updateLobbyUI();
+    }
+
+    // 호스트가 대기실에서 AI 제거
+    function removeBot() {
+        const botIndex = players.map(p => p.isBot).lastIndexOf(true);
+        if (botIndex > -1) {
+            players.splice(botIndex, 1);
+            hostBotCount--;
+            updateLobbyUI();
+        } else {
+            alert("제거할 AI 봇이 없습니다.");
+        }
     }
 
     function updateLobbyUI() {
@@ -468,19 +506,18 @@
         };
         broadcast(state); syncClientState(state);
 
-        // AI 봇들이 있다면 무작위 시간 후 입찰
-        if (gameMode === 'AI') {
-            const currentTableSum = tablePool.reduce((a,b)=>a+b, 0);
-            players.forEach(p => {
-                if (p.id !== myId) {
-                    const delay = 1000 + Math.random() * 2000; // 1~3초 생각
-                    setTimeout(() => {
-                        const botCard = getAICard(p.hand, currentTableSum, aiLevel);
-                        handlePlayerBid(p.id, botCard);
-                    }, delay);
-                }
-            });
-        }
+        // 봇(AI 모드든, 온라인 방에 섞인 봇이든)이라면 자동 입찰 실행
+        const currentTableSum = tablePool.reduce((a,b)=>a+b, 0);
+        players.forEach(p => {
+            if (p.isBot) {
+                const delay = 1000 + Math.random() * 2000; // 1~3초 생각
+                setTimeout(() => {
+                    const botLevel = p.aiLevel || 'NORMAL';
+                    const botCard = getAICard(p.hand, currentTableSum, botLevel);
+                    handlePlayerBid(p.id, botCard);
+                }, delay);
+            }
+        });
     }
 
     // AI 카드 선택 지능 로직
